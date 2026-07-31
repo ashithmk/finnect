@@ -10,6 +10,6 @@ void main() {
       ),
     );
     expect(find.byType(FinnectApp), findsOneWidget);
-    await tester.pumpAndSettle(const Duration(seconds: 4));
+    await tester.pumpAndSettle(const Duration(seconds: 3));
   });
 }
