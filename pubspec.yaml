@@ -1,0 +1,90 @@
+name: finnect
+description: "Finnect — a production-grade personal finance & expense management app."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^3.3.2
+  riverpod_annotation: ^4.0.3
+
+  # Firebase
+  firebase_core: ^4.12.1
+  firebase_auth: ^6.5.6
+  cloud_firestore: ^6.7.1
+  firebase_storage: ^13.4.5
+  firebase_analytics: ^12.4.5
+  google_sign_in: ^7.2.0
+
+  # Navigation
+  go_router: ^17.3.0
+
+  # Charts
+  fl_chart: ^1.2.0
+
+  # Formatting
+  intl: ^0.20.3
+
+  # Media / files
+  image_picker: ^1.1.2
+  file_picker: ^12.0.0-beta.7
+  cached_network_image: ^3.4.0
+
+  # Local storage / preferences
+  shared_preferences: ^2.2.3
+
+  # Connectivity (offline-sync support)
+  connectivity_plus: ^7.3.1
+
+  # Models / value equality
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.9.0
+
+  # PDF / CSV export
+  pdf: ^3.11.0
+  printing: ^5.13.1
+  csv: ^8.0.0
+  path_provider: ^2.1.4
+  share_plus: ^13.3.0
+
+  # Calendar UI
+  table_calendar: ^3.1.2
+
+  # UUID generation
+  uuid: ^4.4.2
+
+  # Dynamic color (Material You)
+  dynamic_color: ^1.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.11
+  freezed: ^3.2.6-dev.1
+  json_serializable: ^6.8.0
+  riverpod_generator: ^4.0.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-Regular.ttf
+  #       - asset: assets/fonts/Inter-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Inter-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Inter-Bold.ttf
+  #         weight: 700
