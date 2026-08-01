@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../app/constants/app_sizes.dart';
 import '../../../../app/utils/extensions.dart';
+import '../../../../core/services/notification_service.dart';
 
-/// Modal sheet for configuring daily expense reminders.
+/// Modal sheet allowing users to set custom daily reminder time and preferences.
+/// Preserves user settings across app sessions without auto-resetting.
 class SetReminderSheet extends StatefulWidget {
-  const SetReminderSheet({super.key});
+  final TimeOfDay? initialTime;
+  const SetReminderSheet({super.key, this.initialTime});
 
   @override
   State<SetReminderSheet> createState() => _SetReminderSheetState();
@@ -12,9 +16,36 @@ class SetReminderSheet extends StatefulWidget {
 
 class _SetReminderSheetState extends State<SetReminderSheet> {
   bool _enabled = true;
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 20, minute: 0); // 8:00 PM default
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 20, minute: 0); // Default 8:00 PM
   final TextEditingController _noteController =
       TextEditingController(text: "Don't forget to track your daily expenses!");
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    // Load saved settings so time is NEVER reset automatically
+    final savedEnabled = prefs.getBool('reminder_enabled') ?? true;
+    final savedHour = prefs.getInt('reminder_hour') ?? 20;
+    final savedMinute = prefs.getInt('reminder_minute') ?? 0;
+    final savedMessage = prefs.getString('reminder_message');
+
+    setState(() {
+      _enabled = savedEnabled;
+      _selectedTime = widget.initialTime ?? TimeOfDay(hour: savedHour, minute: savedMinute);
+      if (savedMessage != null && savedMessage.isNotEmpty) {
+        _noteController.text = savedMessage;
+      }
+      _loading = false;
+    });
+  }
 
   @override
   void dispose() {
@@ -26,11 +57,95 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
+      helpText: 'SELECT DAILY REMINDER TIME',
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _selectedTime = picked;
       });
+    }
+  }
+
+  void _selectPresetTime(int hour, int minute) {
+    setState(() {
+      _selectedTime = TimeOfDay(hour: hour, minute: minute);
+    });
+  }
+
+  Future<void> _sendTestNotification() async {
+    final formattedTime = _selectedTime.format(context);
+    final message = _noteController.text.trim().isNotEmpty
+        ? _noteController.text.trim()
+        : "Don't forget to track your daily expenses!";
+
+    try {
+      await NotificationService.instance.showImmediateNotification(
+        title: 'Finnect Test Reminder 🔔',
+        body: 'Phone notifications active! Scheduled for $formattedTime: "$message"',
+      );
+    } catch (e) {
+      debugPrint('Test notification error: $e');
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: const [
+              Icon(Icons.notifications_active, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('⚡ Test notification sent! Check your phone notification shade.'),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.teal.shade700,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveReminderSettings() async {
+    final formattedTime = _selectedTime.format(context);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('reminder_enabled', _enabled);
+    await prefs.setInt('reminder_hour', _selectedTime.hour);
+    await prefs.setInt('reminder_minute', _selectedTime.minute);
+    await prefs.setString('reminder_message', _noteController.text.trim());
+
+    try {
+      if (_enabled) {
+        final message = _noteController.text.trim().isNotEmpty
+            ? _noteController.text.trim()
+            : "Don't forget to track your daily expenses!";
+
+        await NotificationService.instance.scheduleDailyReminder(
+          time: _selectedTime,
+          title: 'Finnect Expense Reminder ⏰',
+          body: message,
+        );
+      } else {
+        await NotificationService.instance.cancelDailyReminder();
+      }
+    } catch (e) {
+      debugPrint('Notification scheduling notice: $e');
+    }
+
+    if (mounted) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _enabled
+                ? '⏰ Daily reminder saved for $formattedTime every day!'
+                : 'Reminder notifications disabled.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: _enabled ? Colors.teal : Colors.grey[700],
+        ),
+      );
     }
   }
 
@@ -38,123 +153,232 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final formattedTime = _selectedTime.format(context);
+    final maxSheetHeight = MediaQuery.of(context).size.height * 0.88;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSizes.lg,
-        right: AppSizes.lg,
-        top: AppSizes.lg,
-        bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.lg,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.notifications_active, color: theme.colorScheme.primary, size: 24),
-                  const SizedBox(width: AppSizes.sm),
-                  Text(
-                    'Daily Expense Reminder',
-                    style: context.textStyles.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+    return SafeArea(
+      child: Container(
+        constraints: BoxConstraints(maxHeight: maxSheetHeight),
+        padding: EdgeInsets.only(
+          left: AppSizes.lg,
+          right: AppSizes.lg,
+          top: AppSizes.lg,
+          bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.lg,
+        ),
+        child: _loading
+            ? const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.alarm_on_rounded, color: theme.colorScheme.primary, size: 26),
+                            const SizedBox(width: AppSizes.sm),
+                            Text(
+                              'Daily Expense Reminder',
+                              style: context.textStyles.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSizes.xs),
-          Text(
-            'Get notified daily so you never miss logging your spent amount or split bills.',
-            style: context.textStyles.bodySmall?.copyWith(
-              color: context.colors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSizes.md),
+                    const SizedBox(height: AppSizes.xs),
+                    Text(
+                      'Your reminder time is preserved and will only change when you update it.',
+                      style: context.textStyles.bodySmall?.copyWith(
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.md),
 
-          // Enable Toggle Card
-          Card(
-            child: SwitchListTile(
-              title: const Text('Daily Notification', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(_enabled ? 'Active daily reminder' : 'Notifications disabled'),
-              value: _enabled,
-              onChanged: (val) {
-                setState(() {
-                  _enabled = val;
-                });
-              },
-            ),
-          ),
-          const SizedBox(height: AppSizes.sm),
+                    // Enable Toggle Card
+                    Card(
+                      child: SwitchListTile(
+                        title: const Text('Daily Notification', style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(_enabled ? 'Active daily reminder' : 'Reminders turned off'),
+                        value: _enabled,
+                        onChanged: (val) {
+                          setState(() {
+                            _enabled = val;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.md),
 
-          // Select Time Tile
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.access_time_filled_outlined),
-              title: const Text('Reminder Time', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(formattedTime),
-              trailing: ElevatedButton(
-                onPressed: _enabled ? _pickTime : null,
-                style: ElevatedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
+                    // Giant Interactive Time Display Card
+                    Card(
+                      elevation: 3,
+                      color: _enabled
+                          ? theme.colorScheme.primaryContainer
+                          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                        side: BorderSide(
+                          color: _enabled ? theme.colorScheme.primary : Colors.transparent,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: InkWell(
+                        onTap: _enabled ? _pickTime : null,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.access_time_filled,
+                                size: 44,
+                                color: _enabled ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'SAVED REMINDER TIME',
+                                style: context.textStyles.labelSmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                formattedTime,
+                                style: context.textStyles.displaySmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: _enabled
+                                      ? theme.colorScheme.onPrimaryContainer
+                                      : theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.edit_calendar, size: 16, color: theme.colorScheme.onPrimary),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Tap to Change Time (Clock)',
+                                      style: TextStyle(
+                                        color: theme.colorScheme.onPrimary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.md),
+
+                    // Quick Preset Time Options
+                    if (_enabled) ...[
+                      Text(
+                        'Quick Presets:',
+                        style: context.textStyles.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('8:00 AM (Morning)'),
+                            selected: _selectedTime.hour == 8 && _selectedTime.minute == 0,
+                            onSelected: (_) => _selectPresetTime(8, 0),
+                          ),
+                          ChoiceChip(
+                            label: const Text('1:00 PM (Lunch)'),
+                            selected: _selectedTime.hour == 13 && _selectedTime.minute == 0,
+                            onSelected: (_) => _selectPresetTime(13, 0),
+                          ),
+                          ChoiceChip(
+                            label: const Text('8:00 PM (Dinner)'),
+                            selected: _selectedTime.hour == 20 && _selectedTime.minute == 0,
+                            onSelected: (_) => _selectPresetTime(20, 0),
+                          ),
+                          ChoiceChip(
+                            label: const Text('10:00 PM (Night)'),
+                            selected: _selectedTime.hour == 22 && _selectedTime.minute == 0,
+                            onSelected: (_) => _selectPresetTime(22, 0),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSizes.md),
+                    ],
+
+                    // Reminder Note
+                    TextField(
+                      controller: _noteController,
+                      enabled: _enabled,
+                      decoration: InputDecoration(
+                        labelText: 'Reminder Message',
+                        hintText: 'e.g. Log your daily expenses',
+                        prefixIcon: const Icon(Icons.edit_note),
+                        filled: true,
+                        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.md),
+
+                    // Test Notification Flash Button
+                    OutlinedButton.icon(
+                      onPressed: _enabled ? _sendTestNotification : null,
+                      icon: const Icon(Icons.flash_on, color: Colors.amber),
+                      label: const Text('⚡ Send Test Notification Now'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.md),
+
+                    // Save Button
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: _saveReminderSettings,
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: Text(
+                        _enabled ? 'Save $formattedTime Reminder' : 'Turn Off Reminders',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Text('Change Time'),
               ),
-              onTap: _enabled ? _pickTime : null,
-            ),
-          ),
-          const SizedBox(height: AppSizes.sm),
-
-          // Reminder Note
-          TextField(
-            controller: _noteController,
-            enabled: _enabled,
-            decoration: InputDecoration(
-              labelText: 'Reminder Message',
-              hintText: 'e.g. Log your dinner expense',
-              prefixIcon: const Icon(Icons.edit_note),
-              filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSizes.lg),
-
-          // Save Button
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: theme.colorScheme.onPrimary,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _enabled
-                        ? '⏰ Daily reminder set for $formattedTime!'
-                        : 'Reminder notifications disabled.',
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: _enabled ? Colors.teal : Colors.grey[700],
-                ),
-              );
-            },
-            icon: const Icon(Icons.save_outlined),
-            label: const Text('Save Reminder Settings', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
     );
   }

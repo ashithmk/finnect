@@ -431,24 +431,21 @@ class _TransactionListTile extends ConsumerWidget {
           color: context.colors.onSurfaceVariant,
         ),
       ),
-      trailing: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              currency.format(transaction.amount.abs()),
-              style: context.textStyles.titleSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            currency.format(transaction.amount.abs()),
+            style: context.textStyles.titleSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
             ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
-              onPressed: () => _confirmDelete(context, ref),
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+            onPressed: () => _confirmDelete(context, ref),
+          ),
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/constants/app_strings.dart';
 import 'app/routes/app_router.dart';
 import 'app/theme/app_theme.dart';
+import 'core/services/notification_service.dart';
 import 'database_options.dart';
 
 Future<void> main() async {
@@ -13,6 +14,8 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await NotificationService.instance.initialize();
 
   runApp(const ProviderScope(child: FinnectApp()));
 }

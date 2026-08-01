@@ -40,6 +40,11 @@ dependencies:
   # Local storage / preferences
   shared_preferences: ^2.2.3
 
+  # Local notifications
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+  flutter_timezone: ^3.0.1
+
   # Connectivity (offline-sync support)
   connectivity_plus: ^7.3.1
 

@@ -350,8 +350,9 @@ class FirebaseSocialRepository implements SocialRepository {
   @override
   Stream<GroupModel?> getGroupById(String groupId) {
     return _firestore.collection('groups').doc(groupId).snapshots().map((doc) {
-      if (!doc.exists || doc.data() == null) return null;
-      return GroupModel.fromMap(doc.data()!, docId: doc.id);
+      final data = doc.data();
+      if (!doc.exists || data == null) return null;
+      return GroupModel.fromMap(data, docId: doc.id);
     });
   }
 

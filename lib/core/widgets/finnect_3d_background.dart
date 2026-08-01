@@ -22,53 +22,53 @@ class Finnect3DBackground extends StatelessWidget {
         Container(
           color: AppColors.surfaceDark,
         ),
-        // Primary Radial Glow Aura (Finnect Center Glow)
+        // Primary Radial Glow Aura (Finnect Center Indigo Glow)
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 center: const Alignment(0.0, -0.25),
-                radius: 1.2,
+                radius: 1.3,
                 colors: [
-                  const Color(0xFF1E284C).withValues(alpha: 0.70), // Inner indigo aura
-                  const Color(0xFF141933).withValues(alpha: 0.50), // Mid ambient
-                  const Color(0xFF090A0E).withValues(alpha: 0.95), // Deep edge
+                  const Color(0xFF1E284C).withValues(alpha: 0.75), // Inner indigo glow
+                  const Color(0xFF141933).withValues(alpha: 0.55), // Mid ambient
+                  const Color(0xFF090A0E).withValues(alpha: 0.98), // Deep cosmic edge
                 ],
                 stops: const [0.0, 0.55, 1.0],
               ),
             ),
           ),
         ),
-        // Secondary Ambient Top-Right Accent Aura (Violet)
+        // Secondary Ambient Top-Right Accent Aura (Violet Glow)
         Positioned(
-          top: -100,
+          top: -110,
           right: -100,
-          width: 380,
-          height: 380,
+          width: 400,
+          height: 400,
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF7E57C2).withValues(alpha: 0.28),
+                  const Color(0xFF7E57C2).withValues(alpha: 0.32),
                   Colors.transparent,
                 ],
               ),
             ),
           ),
         ),
-        // Tertiary Bottom-Left Accent Aura (Cyan)
+        // Tertiary Bottom-Left Accent Aura (Cyan Glow)
         Positioned(
-          bottom: -90,
+          bottom: -100,
           left: -90,
-          width: 320,
-          height: 320,
+          width: 350,
+          height: 350,
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF00BCD4).withValues(alpha: 0.20),
+                  const Color(0xFF00BCD4).withValues(alpha: 0.25),
                   Colors.transparent,
                 ],
               ),

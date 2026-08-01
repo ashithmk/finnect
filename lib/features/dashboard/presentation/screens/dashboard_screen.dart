@@ -407,7 +407,7 @@ class _RecentTransactionsList extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: AppSizes.sm),
             child: _RecentDayCard(
               groupKey: groupKey,
-              items: grouped[groupKey]!,
+              items: grouped[groupKey] ?? [],
               currency: currency,
             ),
           ),
@@ -444,15 +444,30 @@ class _RecentDayCardState extends State<_RecentDayCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    double dayTotal = 0.0;
+    double dayIncome = 0.0;
+    double dayExpense = 0.0;
     for (final item in widget.items) {
       if (item.type == TransactionType.income) {
-        dayTotal += item.amount;
+        dayIncome += item.amount;
       } else {
-        dayTotal -= item.amount;
+        dayExpense += item.amount;
       }
     }
-    if (dayTotal.isNaN) dayTotal = 0.0;
+    if (dayIncome.isNaN) dayIncome = 0.0;
+    if (dayExpense.isNaN) dayExpense = 0.0;
+
+    final entryText = '${widget.items.length} ${widget.items.length == 1 ? "entry" : "entries"}';
+    final subtitleText = dayIncome > 0
+        ? '$entryText · +${widget.currency.format(dayIncome)} added'
+        : entryText;
+
+    final rightSideAmountStr = dayExpense > 0
+        ? widget.currency.format(dayExpense)
+        : (dayIncome > 0 ? '+${widget.currency.format(dayIncome)}' : widget.currency.format(0.0));
+
+    final rightSideColor = dayExpense > 0
+        ? Colors.redAccent
+        : (dayIncome > 0 ? Colors.green : theme.colorScheme.onSurfaceVariant);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -485,9 +500,12 @@ class _RecentDayCardState extends State<_RecentDayCard> {
                           ),
                         ),
                         Text(
-                          '${widget.items.length} ${widget.items.length == 1 ? "entry" : "entries"}',
+                          subtitleText,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: dayIncome > 0
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurfaceVariant,
+                            fontWeight: dayIncome > 0 ? FontWeight.w500 : FontWeight.normal,
                           ),
                         ),
                       ],
@@ -497,10 +515,10 @@ class _RecentDayCardState extends State<_RecentDayCard> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        widget.currency.format(dayTotal.abs()),
+                        rightSideAmountStr,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: dayTotal >= 0 ? Colors.green : Colors.red,
+                          color: rightSideColor,
                         ),
                       ),
                       Icon(
@@ -606,24 +624,21 @@ class _TransactionTile extends ConsumerWidget {
           color: context.colors.onSurfaceVariant,
         ),
       ),
-      trailing: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              currency.format(transaction.amount.abs()),
-              style: context.textStyles.titleSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            currency.format(transaction.amount.abs()),
+            style: context.textStyles.titleSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
             ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
-              onPressed: () => _confirmDelete(context, ref),
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+            onPressed: () => _confirmDelete(context, ref),
+          ),
+        ],
       ),
     );
   }

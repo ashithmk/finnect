@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 abstract class AppColors {
   AppColors._();
 
-  // Brand seed colors (Finnect Indigo / Blue)
+  // Brand seed colors (Original Finnect Indigo / Blue)
   static const Color seedLight = Color(0xFF2E7D32);
   static const Color seedDark = Color(0xFF3F51B5);
 
-  // Finnect 3D Aura Gradient Colors
+  // Finnect 3D Aura Gradient Colors (Original Palette)
   static const Color finnectIndigo = Color(0xFF3F51B5);
   static const Color finnectBlue = Color(0xFF1E88E5);
   static const Color finnectViolet = Color(0xFF7E57C2);
@@ -33,11 +33,11 @@ abstract class AppColors {
   static const Color budgetWarning = Color(0xFFFFB74D); // 80–100%
   static const Color budgetDanger = Color(0xFFFF5252); // > 100%
 
-  // Surfaces (Deep Finnect Cosmic Dark)
+  // Surfaces (Deep Finnect Dark + Glass Finish)
   static const Color surfaceLight = Color(0xFFFAFAFA);
-  static const Color surfaceDark = Color(0xFF090A0E);
+  static const Color surfaceDark = Color(0xFF090A0E); // Deep Cosmic Dark
   static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color cardDark = Color(0xFF141622); // Translucent 3D glass
+  static const Color cardDark = Color(0xFF141622); // Translucent 3D Glass
 
   // Default category palette
   static const List<Color> categoryPalette = <Color>[

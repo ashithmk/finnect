@@ -53,17 +53,17 @@ abstract class AppTheme {
 
       cardTheme: CardThemeData(
         color: isDark
-            ? AppColors.cardDark.withValues(alpha: 0.85)
+            ? const Color(0xFF141622).withValues(alpha: 0.75)
             : AppColors.cardLight,
-        elevation: isDark ? 4 : AppSizes.cardElevation,
+        elevation: isDark ? 6 : AppSizes.cardElevation,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusLg),
           side: BorderSide(
             color: isDark
-                ? const Color(0xFF2E3554).withValues(alpha: 0.6)
+                ? const Color(0xFF3F51B5).withValues(alpha: 0.45)
                 : scheme.outlineVariant.withValues(alpha: 0.4),
-            width: 1.0,
+            width: 1.2,
           ),
         ),
       ),
@@ -71,27 +71,27 @@ abstract class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark
-            ? const Color(0xFF181B2B).withValues(alpha: 0.8)
+            ? const Color(0xFF181B2B).withValues(alpha: 0.80)
             : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.md),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusLg),
           borderSide: BorderSide(
-            color: isDark ? const Color(0xFF2E3554) : BorderSide.none.color,
+            color: isDark ? const Color(0xFF3F51B5).withValues(alpha: 0.35) : BorderSide.none.color,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusLg),
           borderSide: BorderSide(
             color: isDark
-                ? const Color(0xFF2E3554).withValues(alpha: 0.5)
+                ? const Color(0xFF3F51B5).withValues(alpha: 0.35)
                 : BorderSide.none.color,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-          borderSide: BorderSide(color: scheme.primary, width: 1.5),
+          borderSide: BorderSide(color: scheme.primary, width: 1.8),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusLg),
