@@ -68,7 +68,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSizes.lg),
               _SectionHeader(
-                title: 'Recent (Past 7 Days)',
+                title: 'Recent',
                 onSeeAll: () => context.go(RouteNames.transactions),
               ),
               const SizedBox(height: AppSizes.sm),

@@ -183,7 +183,7 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                             Icon(Icons.alarm_on_rounded, color: theme.colorScheme.primary, size: 26),
                             const SizedBox(width: AppSizes.sm),
                             Text(
-                              'Daily Expense Reminder',
+                              'Daily Reminder',
                               style: context.textStyles.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -196,20 +196,12 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSizes.xs),
-                    Text(
-                      'Your reminder time is preserved and will only change when you update it.',
-                      style: context.textStyles.bodySmall?.copyWith(
-                        color: context.colors.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.md),
+                    
 
                     // Enable Toggle Card
                     Card(
                       child: SwitchListTile(
                         title: const Text('Daily Notification', style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(_enabled ? 'Active daily reminder' : 'Reminders turned off'),
                         value: _enabled,
                         onChanged: (val) {
                           setState(() {
@@ -245,47 +237,29 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                                 size: 44,
                                 color: _enabled ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                               ),
+                              
                               const SizedBox(height: 6),
-                              Text(
-                                'SAVED REMINDER TIME',
-                                style: context.textStyles.labelSmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.1,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                formattedTime,
-                                style: context.textStyles.displaySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: _enabled
-                                      ? theme.colorScheme.onPrimaryContainer
-                                      : theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.edit_calendar, size: 16, color: theme.colorScheme.onPrimary),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Tap to Change Time (Clock)',
-                                      style: TextStyle(
-                                        color: theme.colorScheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    formattedTime,
+                                    style: context.textStyles.displaySmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: _enabled
+                                          ? theme.colorScheme.onPrimaryContainer
+                                          : theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  if (_enabled) ...[
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: theme.colorScheme.primary,
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
                             ],
                           ),
