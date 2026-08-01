@@ -72,41 +72,6 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
     });
   }
 
-  Future<void> _sendTestNotification() async {
-    final formattedTime = _selectedTime.format(context);
-    final message = _noteController.text.trim().isNotEmpty
-        ? _noteController.text.trim()
-        : "Don't forget to track your daily expenses!";
-
-    try {
-      await NotificationService.instance.showImmediateNotification(
-        title: 'Finnect Test Reminder 🔔',
-        body: 'Phone notifications active! Scheduled for $formattedTime: "$message"',
-      );
-    } catch (e) {
-      debugPrint('Test notification error: $e');
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: const [
-              Icon(Icons.notifications_active, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text('⚡ Test notification sent! Check your phone notification shade.'),
-              ),
-            ],
-          ),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.teal.shade700,
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
-  }
-
   Future<void> _saveReminderSettings() async {
     final formattedTime = _selectedTime.format(context);
     final prefs = await SharedPreferences.getInstance();
@@ -232,13 +197,6 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.access_time_filled,
-                                size: 44,
-                                color: _enabled ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-                              ),
-                              
-                              const SizedBox(height: 6),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -320,18 +278,6 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.md),
-
-                    // Test Notification Flash Button
-                    OutlinedButton.icon(
-                      onPressed: _enabled ? _sendTestNotification : null,
-                      icon: const Icon(Icons.flash_on, color: Colors.amber),
-                      label: const Text('⚡ Send Test Notification Now'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
                       ),
                     ),
                     const SizedBox(height: AppSizes.md),
