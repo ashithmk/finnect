@@ -86,7 +86,7 @@ class BalanceDetailsSheet extends ConsumerWidget {
                     ),
                     const SizedBox(width: AppSizes.sm),
                     Text(
-                      'Balance & Dues Breakdown',
+                      'Balance',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -127,7 +127,7 @@ class BalanceDetailsSheet extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Current Total Balance',
+                    'Current  Balance',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
                     ),
@@ -183,14 +183,7 @@ class BalanceDetailsSheet extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Money you lent out',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 11,
-                    ),
-                  ),
+                  
                 ],
               ),
             ),

@@ -14,26 +14,27 @@ class CurrencyFormatter {
     this.locale = 'en_IN',
   });
 
-  NumberFormat get _format => NumberFormat.currency(
+  NumberFormat _getFormat(int decimals) => NumberFormat.currency(
         locale: locale,
         symbol: currencySymbol,
-        decimalDigits: 2,
+        decimalDigits: decimals,
       );
 
-  /// e.g. ₹12,345.67
+  /// e.g. ₹830 (or ₹830.50 if amount has non-zero decimals)
   String format(num? amount) {
-    if (amount == null) return '$currencySymbol 0.00';
-    return _format.format(amount);
+    if (amount == null) return '${currencySymbol}0';
+    final bool isInteger = (amount % 1) == 0;
+    return _getFormat(isInteger ? 0 : 2).format(amount);
   }
 
   /// e.g. ₹12,345 (no decimals — good for dashboard summary cards)
   String formatCompact(num? amount) {
-    if (amount == null) return '$currencySymbol 0';
+    if (amount == null) return '${currencySymbol}0';
     try {
       final NumberFormat compact = NumberFormat.compactCurrency(
         locale: locale,
         symbol: currencySymbol,
-        decimalDigits: amount.abs() >= 1000 ? 1 : 0,
+        decimalDigits: (amount.abs() % 1 == 0) ? 0 : 1,
       );
       return compact.format(amount);
     } catch (_) {
@@ -41,10 +42,12 @@ class CurrencyFormatter {
     }
   }
 
-  /// Format for transaction lists: ₹500.00 (clean positive value, no minus sign)
+  /// Format for transaction lists: ₹500 (clean positive value, no minus sign)
   String formatSigned(num? amount, {required bool isIncome}) {
-    if (amount == null) return '$currencySymbol 0.00';
-    return _format.format(amount.abs());
+    if (amount == null) return '${currencySymbol}0';
+    final absAmount = amount.abs();
+    final bool isInteger = (absAmount % 1) == 0;
+    return _getFormat(isInteger ? 0 : 2).format(absAmount);
   }
 
   /// Parses a user-entered amount string, stripping symbols/commas.

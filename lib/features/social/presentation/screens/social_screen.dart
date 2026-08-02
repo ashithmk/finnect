@@ -65,7 +65,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Groups & Friends'),
+          title: const Text('Groups'),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: AppSizes.sm),
@@ -157,15 +157,9 @@ class _FriendsTabList extends ConsumerWidget {
                     children: [
                       Icon(Icons.people_outline, size: 64, color: context.colors.outline),
                       const SizedBox(height: AppSizes.md),
-                      Text('No Friends Added Yet', style: context.textStyles.titleMedium),
+                      Text('No Friends ', style: context.textStyles.titleMedium),
                       const SizedBox(height: 4),
-                      Text(
-                        'Tap the request icon in the top right to search and add friends!',
-                        textAlign: TextAlign.center,
-                        style: context.textStyles.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ),
+                      
                     ],
                   ),
                 ),

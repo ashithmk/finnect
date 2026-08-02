@@ -192,16 +192,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Friends & Direct Messaging',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                
                 TextButton.icon(
                   onPressed: () => _openFriendRequestsSheet(scaffoldContext),
                   icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
                   label: const Text('Add Friends'),
+                  
                 ),
               ],
             ),
@@ -219,14 +215,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const Icon(Icons.people_outline, size: 40, color: Colors.white54),
                           const SizedBox(height: AppSizes.sm),
                           const Text(
-                            'No Friends Added Yet',
+                            'No Friends',
                             style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Tap Add Friends above to search users by @username and send requests!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12, color: Colors.white70),
                           ),
                         ],
                       ),

@@ -225,23 +225,14 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                         spacing: 8,
                         runSpacing: 6,
                         children: [
+                         
                           ChoiceChip(
-                            label: const Text('8:00 AM (Morning)'),
-                            selected: _selectedTime.hour == 8 && _selectedTime.minute == 0,
-                            onSelected: (_) => _selectPresetTime(8, 0),
-                          ),
-                          ChoiceChip(
-                            label: const Text('1:00 PM (Lunch)'),
-                            selected: _selectedTime.hour == 13 && _selectedTime.minute == 0,
-                            onSelected: (_) => _selectPresetTime(13, 0),
-                          ),
-                          ChoiceChip(
-                            label: const Text('8:00 PM (Dinner)'),
+                            label: const Text('8:00 PM '),
                             selected: _selectedTime.hour == 20 && _selectedTime.minute == 0,
                             onSelected: (_) => _selectPresetTime(20, 0),
                           ),
                           ChoiceChip(
-                            label: const Text('10:00 PM (Night)'),
+                            label: const Text('10:00 PM '),
                             selected: _selectedTime.hour == 22 && _selectedTime.minute == 0,
                             onSelected: (_) => _selectPresetTime(22, 0),
                           ),
@@ -280,7 +271,7 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                       onPressed: _saveReminderSettings,
                       icon: const Icon(Icons.check_circle_outline),
                       label: Text(
-                        _enabled ? 'Save $formattedTime Reminder' : 'Turn Off Reminders',
+                        _enabled ? 'Save ' : 'Turn Off Reminders',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),

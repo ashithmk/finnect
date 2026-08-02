@@ -456,10 +456,9 @@ class _RecentDayCardState extends State<_RecentDayCard> {
     if (dayIncome.isNaN) dayIncome = 0.0;
     if (dayExpense.isNaN) dayExpense = 0.0;
 
-    final entryText = '${widget.items.length} ${widget.items.length == 1 ? "entry" : "entries"}';
-    final subtitleText = dayIncome > 0
-        ? '$entryText · +${widget.currency.format(dayIncome)} added'
-        : entryText;
+    final String? subtitleText = dayIncome > 0
+        ? '+${widget.currency.format(dayIncome)}'
+        : null;
 
     final rightSideAmountStr = dayExpense > 0
         ? widget.currency.format(dayExpense)
@@ -499,15 +498,14 @@ class _RecentDayCardState extends State<_RecentDayCard> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          subtitleText,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: dayIncome > 0
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                            fontWeight: dayIncome > 0 ? FontWeight.w500 : FontWeight.normal,
+                        if (subtitleText != null)
+                          Text(
+                            subtitleText,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
