@@ -67,25 +67,40 @@ final dashboardSummaryProvider = Provider<DashboardSummary>((ref) {
 
     // Check Lend (Money user lent out -> to get back)
     if (catLower == 'lend' || catLower == 'to get') {
-      toGet += tx.amount;
       lendBorrowList.add(tx);
+      if (!tx.isClosed) {
+        toGet += tx.remainingAmount;
+        balanceIncome += tx.repaidAmount;
+      } else {
+        balanceIncome += tx.amount;
+      }
     }
     // Check Borrow (Money user borrowed -> to give back)
     else if (catLower == 'borrow' || catLower == 'to give') {
-      toGive += tx.amount;
       lendBorrowList.add(tx);
+      if (!tx.isClosed) {
+        toGive += tx.remainingAmount;
+        totalExpense += tx.repaidAmount;
+      } else {
+        totalExpense += tx.amount;
+      }
     }
 
     if (tx.type == TransactionType.income) {
       if (catLower == 'savings') {
         savingsIncome += tx.amount;
-      } else {
+      } else if (catLower != 'borrow' && catLower != 'to give') {
         balanceIncome += tx.amount;
       }
     } else if (tx.type == TransactionType.expense) {
-      totalExpense += tx.amount;
-      if (tx.date.month == now.month && tx.date.year == now.year) {
-        monthlyExpense += tx.amount;
+      if (catLower != 'lend' && catLower != 'to get') {
+        totalExpense += tx.amount;
+        if (tx.date.month == now.month && tx.date.year == now.year) {
+          monthlyExpense += tx.amount;
+        }
+      } else {
+        // Original Lend principal count in total expense
+        totalExpense += tx.amount;
       }
     }
   }
@@ -115,7 +130,7 @@ final dashboardSummaryProvider = Provider<DashboardSummary>((ref) {
   );
 });
 
-/// Controller for executing transaction creation and deletion.
+/// Controller for executing transaction creation, modification, and deletion.
 class TransactionController extends Notifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() {
@@ -127,6 +142,15 @@ class TransactionController extends Notifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await repository.addTransaction(transaction);
+    });
+    return !state.hasError;
+  }
+
+  Future<bool> updateTransaction(TransactionModel transaction) async {
+    final repository = ref.read(transactionRepositoryProvider);
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await repository.updateTransaction(transaction);
     });
     return !state.hasError;
   }

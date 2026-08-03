@@ -1,10 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../app/constants/app_sizes.dart';
 
-/// Primary filled button with an optional loading spinner state.
-///
-/// Used for the main call-to-action on a screen (Save, Sign In, Add
-/// Transaction, etc). Disables itself and shows a spinner while [isLoading].
+/// Primary Pinterest-style capsule pill button with optional icon badge and loading spinner.
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -23,33 +21,75 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
-      style: backgroundColor != null
-          ? ElevatedButton.styleFrom(backgroundColor: backgroundColor)
-          : null,
-      child: isLoading
-          ? const SizedBox(
-              height: 22,
-              width: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.4),
-            )
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: AppSizes.iconSm),
-                  const SizedBox(width: AppSizes.sm),
-                ],
-                Text(label),
-              ],
+    final theme = Theme.of(context);
+    final bg = backgroundColor ?? theme.colorScheme.primary;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+        boxShadow: [
+          BoxShadow(
+            color: bg.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: isLoading ? null : onPressed,
+            borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+            child: Container(
+              height: AppSizes.buttonHeight,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: AppSizes.lg),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          label,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        if (icon != null) ...[
+                          const SizedBox(width: AppSizes.sm),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black26,
+                            ),
+                            child: Icon(icon, size: 14, color: Colors.white),
+                          ),
+                        ],
+                      ],
+                    ),
             ),
+          ),
+        ),
+      ),
     );
   }
 }
 
-/// Secondary outlined button — used for cancel / alternate actions.
+/// Secondary Liquid Glass pill button with frosted blur and specular stroke outline.
 class SecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -64,25 +104,69 @@ class SecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: AppSizes.iconSm),
-            const SizedBox(width: AppSizes.sm),
-          ],
-          Text(label),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+        color: isDark
+            ? const Color(0xFF1E2942).withValues(alpha: 0.55)
+            : Colors.white.withValues(alpha: 0.65),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.60),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+              child: Container(
+                height: AppSizes.buttonHeight,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: AppSizes.lg),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    if (icon != null) ...[
+                      const SizedBox(width: AppSizes.sm),
+                      Icon(icon, size: AppSizes.iconSm, color: theme.colorScheme.onSurface),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Compact pill-shaped chip button — used for filters (date range,
-/// category, payment method) in the transactions list toolbar.
+/// Compact Pinterest-style Liquid Glass filter chip button.
 class FilterChipButton extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -100,26 +184,52 @@ class FilterChipButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSizes.radiusPill),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+          color: isSelected
+              ? scheme.primary
+              : (isDark
+                  ? const Color(0xFF1E2942).withValues(alpha: 0.50)
+                  : Colors.white.withValues(alpha: 0.60)),
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+          border: Border.all(
+            color: isSelected
+                ? Colors.white.withValues(alpha: 0.40)
+                : Colors.white.withValues(alpha: isDark ? 0.20 : 0.50),
+            width: 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: AppSizes.iconSm, color: scheme.onSurfaceVariant),
+              Icon(
+                icon,
+                size: AppSizes.iconSm,
+                color: isSelected ? Colors.white : scheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
             ],
             Text(
               label,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: isSelected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+                    color: isSelected ? Colors.white : scheme.onSurfaceVariant,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   ),
             ),
           ],

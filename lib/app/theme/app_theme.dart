@@ -53,16 +53,16 @@ abstract class AppTheme {
 
       cardTheme: CardThemeData(
         color: isDark
-            ? const Color(0xFF141622).withValues(alpha: 0.75)
-            : AppColors.cardLight,
-        elevation: isDark ? 6 : AppSizes.cardElevation,
+            ? const Color(0xFF1A233A).withValues(alpha: 0.60)
+            : Colors.white.withValues(alpha: 0.70),
+        elevation: isDark ? 8 : 4,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          borderRadius: BorderRadius.circular(24.0),
           side: BorderSide(
             color: isDark
-                ? const Color(0xFF3F51B5).withValues(alpha: 0.45)
-                : scheme.outlineVariant.withValues(alpha: 0.4),
+                ? Colors.white.withValues(alpha: 0.22)
+                : Colors.white.withValues(alpha: 0.65),
             width: 1.2,
           ),
         ),
@@ -71,30 +71,37 @@ abstract class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark
-            ? const Color(0xFF181B2B).withValues(alpha: 0.80)
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            ? const Color(0xFF161F33).withValues(alpha: 0.75)
+            : Colors.white.withValues(alpha: 0.85),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.md),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide(
-            color: isDark ? const Color(0xFF3F51B5).withValues(alpha: 0.35) : BorderSide.none.color,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.25)
+                : scheme.outlineVariant.withValues(alpha: 0.5),
+            width: 1.2,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide(
             color: isDark
-                ? const Color(0xFF3F51B5).withValues(alpha: 0.35)
-                : BorderSide.none.color,
+                ? Colors.white.withValues(alpha: 0.25)
+                : scheme.outlineVariant.withValues(alpha: 0.5),
+            width: 1.2,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-          borderSide: BorderSide(color: scheme.primary, width: 1.8),
+          borderRadius: BorderRadius.circular(20.0),
+          borderSide: BorderSide(
+            color: scheme.primary,
+            width: 1.8,
+          ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide(color: scheme.error, width: 1.2),
         ),
         labelStyle: textTheme.bodyMedium,
@@ -198,9 +205,9 @@ abstract class AppTheme {
       ),
 
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? const Color(0xFF121422) : AppColors.cardLight,
+        backgroundColor: isDark ? const Color(0xFF111726) : AppColors.cardLight,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32.0)),
         ),
         showDragHandle: true,
       ),

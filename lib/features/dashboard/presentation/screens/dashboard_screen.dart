@@ -8,6 +8,7 @@ import '../../../../app/constants/app_strings.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../app/utils/currency_formatter.dart';
 import '../../../../app/utils/extensions.dart';
+import '../../../../core/widgets/aero_glass_container.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../transactions/data/transaction_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
@@ -130,107 +131,97 @@ class _TotalBalanceCard extends StatelessWidget {
     final safeBalance = (totalBalance.isNaN || totalBalance < 0) ? 0.0 : totalBalance;
     final safeSavings = (savings.isNaN || savings < 0) ? 0.0 : savings;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _openBalanceDetails(context),
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSizes.lg),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF1E88E5), // Finnect Blue
-                Color(0xFF3F51B5), // Finnect Indigo
-                Color(0xFF7E57C2), // Finnect Violet
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3F51B5).withValues(alpha: 0.45),
-                blurRadius: 16,
-                spreadRadius: 1,
-                offset: const Offset(0, 6),
+    return LiquidGlassContainer(
+      onTap: () => _openBalanceDetails(context),
+      borderRadius: BorderRadius.circular(24.0),
+      padding: const EdgeInsets.all(AppSizes.lg),
+      gradient: const LinearGradient(
+        colors: [
+          Color(0xFF1E88E5), // Finnect Blue
+          Color(0xFF3F51B5), // Finnect Indigo
+          Color(0xFF7E57C2), // Finnect Violet
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row with Top-Left "Add Balance" button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => _openAddBalance(context),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Text(
+                    'Add Balance',
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top row with Top-Left "Add Balance" button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: () => _openAddBalance(context),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: Text(
-                        'Add Balance',
-                        style: context.textStyles.labelSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSizes.md),
+          const SizedBox(height: AppSizes.md),
 
-              // Balance amount on left & Bottom-Right Savings display
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Text(
-                      currency.format(safeBalance),
-                      style: context.textStyles.headlineLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  // Bottom-Right Corner Savings Display
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Savings',
-                        style: context.textStyles.labelSmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        currency.format(safeSavings),
-                        style: context.textStyles.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+          // Balance amount on left & Bottom-Right Savings display
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Text(
+                  currency.format(safeBalance),
+                  style: context.textStyles.headlineLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    shadows: const [
+                      Shadow(
+                        color: Colors.black26,
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
+                ),
+              ),
+              const SizedBox(width: AppSizes.sm),
+              // Bottom-Right Corner Savings Display
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Savings',
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    currency.format(safeSavings),
+                    style: context.textStyles.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -251,44 +242,46 @@ class _MonthlyExpenseCard extends StatelessWidget {
     final monthName = DateFormat.MMMM().format(DateTime.now());
     final safeExpense = (monthlyExpense.isNaN || monthlyExpense < 0) ? 0.0 : monthlyExpense;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.md),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.calendar_today,
-                  size: AppSizes.iconMd, color: Colors.redAccent),
-            ),
-            const SizedBox(width: AppSizes.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Expenses ($monthName)',
-                    style: context.textStyles.bodySmall?.copyWith(
-                      color: context.colors.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    currency.format(safeExpense),
-                    style: context.textStyles.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.redAccent,
-                    ),
-                  ),
-                ],
+    return LiquidGlassContainer(
+      padding: const EdgeInsets.all(AppSizes.md),
+      borderRadius: BorderRadius.circular(24.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.red.withValues(alpha: 0.4),
               ),
             ),
-          ],
-        ),
+            child: const Icon(Icons.calendar_today,
+                size: AppSizes.iconMd, color: Colors.redAccent),
+          ),
+          const SizedBox(width: AppSizes.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Expenses ($monthName)',
+                  style: context.textStyles.bodySmall?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  currency.format(safeExpense),
+                  style: context.textStyles.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

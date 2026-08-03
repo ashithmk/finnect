@@ -44,6 +44,8 @@ class TransactionModel {
   final DateTime date;
   final String? description;
   final String paymentMethod; // 'cash' | 'account'
+  final double repaidAmount; // Amount returned/paid back so far
+  final bool isClosed; // Whether the lend/borrow account is closed/settled
 
   const TransactionModel({
     required this.id,
@@ -55,7 +57,16 @@ class TransactionModel {
     required this.date,
     this.description,
     this.paymentMethod = 'cash',
+    this.repaidAmount = 0.0,
+    this.isClosed = false,
   });
+
+  /// Calculates outstanding balance remaining on this transaction item.
+  double get remainingAmount {
+    if (isClosed) return 0.0;
+    final rem = amount - repaidAmount;
+    return rem < 0 ? 0.0 : rem;
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -68,6 +79,8 @@ class TransactionModel {
       'date': date.toIso8601String(),
       'description': description,
       'paymentMethod': paymentMethod,
+      'repaidAmount': repaidAmount,
+      'isClosed': isClosed,
     };
   }
 
@@ -78,6 +91,14 @@ class TransactionModel {
       parsedAmount = rawAmount.toDouble();
     } else if (rawAmount is String) {
       parsedAmount = double.tryParse(rawAmount) ?? 0.0;
+    }
+
+    final rawRepaid = map['repaidAmount'];
+    double parsedRepaid = 0.0;
+    if (rawRepaid is num) {
+      parsedRepaid = rawRepaid.toDouble();
+    } else if (rawRepaid is String) {
+      parsedRepaid = double.tryParse(rawRepaid) ?? 0.0;
     }
 
     return TransactionModel(
@@ -92,6 +113,8 @@ class TransactionModel {
           : DateTime.now(),
       description: map['description'] as String?,
       paymentMethod: map['paymentMethod'] as String? ?? 'cash',
+      repaidAmount: parsedRepaid,
+      isClosed: map['isClosed'] as bool? ?? false,
     );
   }
 
@@ -105,6 +128,8 @@ class TransactionModel {
     DateTime? date,
     String? description,
     String? paymentMethod,
+    double? repaidAmount,
+    bool? isClosed,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -116,6 +141,8 @@ class TransactionModel {
       date: date ?? this.date,
       description: description ?? this.description,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      repaidAmount: repaidAmount ?? this.repaidAmount,
+      isClosed: isClosed ?? this.isClosed,
     );
   }
 
@@ -131,7 +158,9 @@ class TransactionModel {
         other.category == category &&
         other.date == date &&
         other.description == description &&
-        other.paymentMethod == paymentMethod;
+        other.paymentMethod == paymentMethod &&
+        other.repaidAmount == repaidAmount &&
+        other.isClosed == isClosed;
   }
 
   @override
@@ -146,6 +175,8 @@ class TransactionModel {
       date,
       description,
       paymentMethod,
+      repaidAmount,
+      isClosed,
     );
   }
 }

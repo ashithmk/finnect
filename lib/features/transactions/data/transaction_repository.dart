@@ -10,6 +10,9 @@ abstract class TransactionRepository {
   /// Adds a new transaction document to the database.
   Future<void> addTransaction(TransactionModel transaction);
 
+  /// Updates an existing transaction document in the database.
+  Future<void> updateTransaction(TransactionModel transaction);
+
   /// Deletes a transaction from the database.
   Future<void> deleteTransaction(String userId, String transactionId);
 }
@@ -44,6 +47,12 @@ class FirebaseTransactionRepository implements TransactionRepository {
     final docRef = transaction.id.isNotEmpty ? ref.doc(transaction.id) : ref.doc();
     final toSave = transaction.copyWith(id: docRef.id);
     await docRef.set(toSave.toMap());
+  }
+
+  @override
+  Future<void> updateTransaction(TransactionModel transaction) async {
+    final ref = _userTransactionsRef(transaction.userId);
+    await ref.doc(transaction.id).update(transaction.toMap());
   }
 
   @override
@@ -169,6 +178,17 @@ class LocalMockTransactionRepository implements TransactionRepository {
         : 'tx_${DateTime.now().millisecondsSinceEpoch}';
     final saved = transaction.copyWith(id: newId);
     _items.insert(0, saved);
+    _controller.add(List.unmodifiable(_items));
+  }
+
+  @override
+  Future<void> updateTransaction(TransactionModel transaction) async {
+    final index = _items.indexWhere((item) => item.id == transaction.id);
+    if (index != -1) {
+      _items[index] = transaction;
+    } else {
+      _items.insert(0, transaction);
+    }
     _controller.add(List.unmodifiable(_items));
   }
 

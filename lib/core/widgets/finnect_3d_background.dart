@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../app/constants/app_colors.dart';
 
-/// Recreates the Finnect 3D cosmic background effect with stacked
-/// radial gradients, ambient lighting auras, and subtle depth lighting.
+/// Deep oceanic ambient background supporting Pinterest-style Liquid Glassmorphism.
 class Finnect3DBackground extends StatelessWidget {
   final Widget child;
 
@@ -13,69 +11,111 @@ class Finnect3DBackground extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (!isDark) {
-      return child;
+      return Container(
+        color: const Color(0xFFEBF3FA),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -100,
+              right: -80,
+              width: 350,
+              height: 350,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF1E88E5).withValues(alpha: 0.18),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            child,
+          ],
+        ),
+      );
     }
 
     return Stack(
       children: [
-        // Base Deep Cosmic Background
+        // Base Deep Oceanic Slate Gradient
         Container(
-          color: AppColors.surfaceDark,
-        ),
-        // Primary Radial Glow Aura (Finnect Center Indigo Glow)
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0.0, -0.25),
-                radius: 1.3,
-                colors: [
-                  const Color(0xFF1E284C).withValues(alpha: 0.75), // Inner indigo glow
-                  const Color(0xFF141933).withValues(alpha: 0.55), // Mid ambient
-                  const Color(0xFF090A0E).withValues(alpha: 0.98), // Deep cosmic edge
-                ],
-                stops: const [0.0, 0.55, 1.0],
-              ),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF0D1424), // Deep oceanic slate top
+                Color(0xFF121B30), // Mid slate
+                Color(0xFF090D18), // Deep slate bottom
+              ],
             ),
           ),
         ),
-        // Secondary Ambient Top-Right Accent Aura (Violet Glow)
+
+        // Primary Ambient Top-Right Radial Glow Aura (Cyan/Blue Aura)
         Positioned(
-          top: -110,
-          right: -100,
-          width: 400,
-          height: 400,
+          top: -120,
+          right: -90,
+          width: 420,
+          height: 420,
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF7E57C2).withValues(alpha: 0.32),
+                  const Color(0xFF00B4D8).withValues(alpha: 0.28),
+                  const Color(0xFF1E88E5).withValues(alpha: 0.12),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
+          ),
+        ),
+
+        // Secondary Mid Center-Left Accent Aura (Deep Violet Aura)
+        Positioned(
+          top: 220,
+          left: -110,
+          width: 380,
+          height: 380,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF7E57C2).withValues(alpha: 0.25),
+                  const Color(0xFF3F51B5).withValues(alpha: 0.10),
                   Colors.transparent,
                 ],
               ),
             ),
           ),
         ),
-        // Tertiary Bottom-Left Accent Aura (Cyan Glow)
+
+        // Tertiary Bottom-Right Ambient Aura (Electric Teal Glow)
         Positioned(
           bottom: -100,
-          left: -90,
-          width: 350,
-          height: 350,
+          right: -80,
+          width: 360,
+          height: 360,
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF00BCD4).withValues(alpha: 0.25),
+                  const Color(0xFF00E5FF).withValues(alpha: 0.20),
                   Colors.transparent,
                 ],
               ),
             ),
           ),
         ),
-        // Main Screen Content
+
+        // Main Content
         child,
       ],
     );

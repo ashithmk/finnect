@@ -30,6 +30,32 @@ void main() {
       expect(reconstructed.type, tx.type);
       expect(reconstructed.category, tx.category);
     });
+
+    test('repaidAmount, isClosed, and remainingAmount calculate correctly', () {
+      final lendTx = TransactionModel(
+        id: 'tx_lend',
+        userId: 'user_123',
+        title: 'Lend (Alex)',
+        amount: 100.0,
+        type: TransactionType.expense,
+        category: 'Lend',
+        date: DateTime.now(),
+        repaidAmount: 30.0,
+        isClosed: false,
+      );
+
+      expect(lendTx.remainingAmount, 70.0);
+      expect(lendTx.repaidAmount, 30.0);
+      expect(lendTx.isClosed, isFalse);
+
+      final closedTx = lendTx.copyWith(
+        repaidAmount: 100.0,
+        isClosed: true,
+      );
+
+      expect(closedTx.remainingAmount, 0.0);
+      expect(closedTx.isClosed, isTrue);
+    });
   });
 
   group('TransactionRepository Integration Tests', () {
@@ -55,6 +81,26 @@ void main() {
       expect(streamList.length, 1);
       expect(streamList.first.title, 'Salary');
       expect(streamList.first.amount, 50000.0);
+    });
+
+    test('updateTransaction updates repaidAmount and isClosed in repository', () async {
+      final tx = TransactionModel(
+        id: 'tx_lend_1',
+        userId: 'user_1',
+        title: 'Lend (Sam)',
+        amount: 100.0,
+        type: TransactionType.expense,
+        category: 'Lend',
+        date: DateTime.now(),
+      );
+
+      await repository.addTransaction(tx);
+      final updated = tx.copyWith(repaidAmount: 30.0);
+      await repository.updateTransaction(updated);
+
+      final streamList = await repository.getTransactions('user_1').first;
+      expect(streamList.first.repaidAmount, 30.0);
+      expect(streamList.first.remainingAmount, 70.0);
     });
 
     test('deleteTransaction removes transaction from repository', () async {
