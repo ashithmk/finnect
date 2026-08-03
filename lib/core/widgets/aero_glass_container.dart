@@ -44,12 +44,12 @@ class LiquidGlassContainer extends StatelessWidget {
     final effectiveRadius = borderRadius ?? BorderRadius.circular(24.0);
     final defaultGlassColor = glassColor ??
         (isDark
-            ? const Color(0xFF1A233A).withValues(alpha: 0.62)
-            : Colors.white.withValues(alpha: 0.68));
+            ? const Color(0xFF0A1838).withValues(alpha: 0.65)
+            : const Color(0xFFF3F7FE).withValues(alpha: 0.75));
 
     final defaultBorderColor = borderColor ??
         (isDark
-            ? Colors.white.withValues(alpha: 0.22)
+            ? const Color(0xFFF3F7FE).withValues(alpha: 0.25)
             : Colors.white.withValues(alpha: 0.65));
 
     Widget content = Container(

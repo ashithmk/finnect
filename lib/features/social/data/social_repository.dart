@@ -68,54 +68,43 @@ class FirebaseSocialRepository implements SocialRepository {
     final cleanQuery = query.trim().toLowerCase().replaceAll('@', '');
     if (cleanQuery.isEmpty) return [];
 
-    debugPrint('[FirebaseSearch] Range query search for username: "$cleanQuery", currentUserId: "$currentUserId"');
+    debugPrint('[FirebaseSearch] Searching for: "$cleanQuery", currentUserId: "$currentUserId"');
 
     final List<UserFriendInfo> results = [];
     final Map<String, AppUser> matchedUsersMap = {};
 
-    // 1. Execute Firestore range prefix search on 'username' field (\uf8ff pattern)
+    // 1. Search Firestore collection
     try {
-      final snapshot = await _firestore
-          .collection('users')
-          .where('username', isGreaterThanOrEqualTo: cleanQuery)
-          .where('username', isLessThan: '$cleanQuery\uf8ff')
-          .limit(20)
-          .get();
-
-      debugPrint('[FirebaseSearch] Range query returned ${snapshot.docs.length} docs');
+      final snapshot = await _firestore.collection('users').limit(100).get();
       for (final doc in snapshot.docs) {
         final data = Map<String, dynamic>.from(doc.data());
         final u = AppUser.fromMap(data, docId: doc.id);
         final uid = u.uid.isNotEmpty ? u.uid : doc.id;
-        if (uid.isNotEmpty) {
-          matchedUsersMap[uid] = u.copyWith(uid: uid);
+
+        final uName = u.username.toLowerCase().replaceAll('@', '');
+        final dName = u.displayName.toLowerCase();
+        final eName = u.email.toLowerCase();
+
+        if (uName.contains(cleanQuery) || dName.contains(cleanQuery) || eName.contains(cleanQuery)) {
+          if (uid.isNotEmpty) {
+            matchedUsersMap[uid] = u.copyWith(uid: uid);
+          }
         }
       }
     } catch (e) {
-      debugPrint('[FirebaseSearch] Range query notice: $e');
+      debugPrint('[FirebaseSearch] Firestore collection search notice: $e');
     }
 
-    // 2. Also search all Firestore users if range query returned 0 (for case differences or displayName/email matches)
+    // 2. Only if Firestore returned no matches, fallback to local mock DB
     if (matchedUsersMap.isEmpty) {
-      try {
-        final snapshot = await _firestore.collection('users').limit(50).get();
-        for (final doc in snapshot.docs) {
-          final data = Map<String, dynamic>.from(doc.data());
-          final u = AppUser.fromMap(data, docId: doc.id);
-          final uid = u.uid.isNotEmpty ? u.uid : doc.id;
+      for (final u in LocalMockAuthRepository.sharedMockUsersDb.values) {
+        final uName = u.username.toLowerCase().replaceAll('@', '');
+        final dName = u.displayName.toLowerCase();
+        final eName = u.email.toLowerCase();
 
-          final uName = u.username.toLowerCase().replaceAll('@', '');
-          final dName = u.displayName.toLowerCase();
-          final eName = u.email.toLowerCase();
-
-          if (uName.contains(cleanQuery) || dName.contains(cleanQuery) || eName.contains(cleanQuery)) {
-            if (uid.isNotEmpty) {
-              matchedUsersMap[uid] = u.copyWith(uid: uid);
-            }
-          }
+        if (uName.contains(cleanQuery) || dName.contains(cleanQuery) || eName.contains(cleanQuery)) {
+          matchedUsersMap[u.uid] = u;
         }
-      } catch (e) {
-        debugPrint('[FirebaseSearch] Full collection search notice: $e');
       }
     }
 
@@ -143,9 +132,14 @@ class FirebaseSocialRepository implements SocialRepository {
       debugPrint('[FirebaseSearch] Friendships query notice: $e');
     }
 
-    // 4. Construct results list (excluding self)
+    // 4. Construct results list (excluding self and deduplicating by lowercased username)
+    final Set<String> seenUsernames = {};
+
     for (final user in matchedUsersMap.values) {
       if (user.uid == currentUserId) continue;
+      final uKey = user.username.trim().replaceAll('@', '').toLowerCase();
+      if (uKey.isNotEmpty && seenUsernames.contains(uKey)) continue;
+      if (uKey.isNotEmpty) seenUsernames.add(uKey);
 
       final existingF = friendshipMap[user.uid];
       final displayUsername = user.username.isNotEmpty
@@ -591,10 +585,12 @@ class LocalMockSocialRepository implements SocialRepository {
 
     final List<UserFriendInfo> results = [];
 
+    final Set<String> seenUsernames = {};
+
     for (final user in LocalMockAuthRepository.sharedMockUsersDb.values) {
       if (user.uid == currentUserId) continue;
 
-      final uName = user.username.toLowerCase();
+      final uName = user.username.toLowerCase().replaceAll('@', '');
       final dName = user.displayName.toLowerCase();
       final eName = user.email.toLowerCase();
 
@@ -602,6 +598,9 @@ class LocalMockSocialRepository implements SocialRepository {
           uName.contains(cleanQuery) ||
           dName.contains(cleanQuery) ||
           eName.contains(cleanQuery)) {
+        if (uName.isNotEmpty && seenUsernames.contains(uName)) continue;
+        if (uName.isNotEmpty) seenUsernames.add(uName);
+
         FriendshipStatus? status;
         String? requesterId;
         for (final f in _friendships) {

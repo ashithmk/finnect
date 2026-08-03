@@ -1,50 +1,70 @@
 import 'package:flutter/material.dart';
 
 /// Centralized color palette for the Finnect app.
+/// Uses requested color combo:
+/// - Hex: #031130 (Deep Midnight Navy)
+/// - Hex: #185DF1 (Vibrant Sapphire Blue)
+/// - Hex: #F3F7FE (Frosted Ice Highlight)
 abstract class AppColors {
   AppColors._();
 
-  // Brand seed colors (Original Finnect Indigo / Blue)
-  static const Color seedLight = Color(0xFF2E7D32);
-  static const Color seedDark = Color(0xFF3F51B5);
+  // Primary Theme Hex Colors requested by user
+  static const Color navyDark = Color(0xFF031130);
+  static const Color electricBlue = Color(0xFF185DF1);
+  static const Color iceHighlight = Color(0xFFF3F7FE);
 
-  // Finnect 3D Aura Gradient Colors (Original Palette)
-  static const Color finnectIndigo = Color(0xFF3F51B5);
-  static const Color finnectBlue = Color(0xFF1E88E5);
-  static const Color finnectViolet = Color(0xFF7E57C2);
-  static const Color finnectCyan = Color(0xFF00BCD4);
-  static const Color finnectAuraCenter = Color(0xFF1A2142);
+  // Brand seed colors
+  static const Color seedLight = Color(0xFF185DF1);
+  static const Color seedDark = Color(0xFF185DF1);
 
-  // Deprecated Aliases for backward compatibility
-  static const Color geminiIndigo = finnectIndigo;
-  static const Color geminiBlue = finnectBlue;
-  static const Color geminiViolet = finnectViolet;
-  static const Color geminiCyan = finnectCyan;
-  static const Color geminiAuraCenter = finnectAuraCenter;
+  // Finnect Gradient Colors
+  static const Color finnectNavy = Color(0xFF031130);
+  static const Color finnectBlue = Color(0xFF185DF1);
+  static const Color finnectIce = Color(0xFFF3F7FE);
+  static const Color finnectCyan = Color(0xFF00E5FF);
+
+  // Default Primary Theme Gradient
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF031130), // Deep Midnight Navy
+      Color(0xFF185DF1), // Electric Sapphire Blue
+    ],
+  );
+
+  // Accent Glass Gradient with Ice Highlight
+  static const LinearGradient glassGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF0B1F4D),
+      Color(0xFF185DF1),
+    ],
+  );
 
   // Semantic — financial meaning
-  static const Color income = Color(0xFF4CAF50); // green
-  static const Color expense = Color(0xFFFF5252); // red
-  static const Color transfer = Color(0xFF29B6F6); // blue
-  static const Color neutral = Color(0xFF9E9E9E); // grey
+  static const Color income = Color(0xFF00E676); // Vibrant Green
+  static const Color expense = Color(0xFFFF5252); // Red
+  static const Color transfer = Color(0xFF185DF1); // Sapphire Blue
+  static const Color neutral = Color(0xFF90A4AE); // Grey
 
   // Budget progress thresholds
-  static const Color budgetSafe = Color(0xFF66BB6A); // < 80%
-  static const Color budgetWarning = Color(0xFFFFB74D); // 80–100%
-  static const Color budgetDanger = Color(0xFFFF5252); // > 100%
+  static const Color budgetSafe = Color(0xFF00E676);
+  static const Color budgetWarning = Color(0xFFFFB74D);
+  static const Color budgetDanger = Color(0xFFFF5252);
 
-  // Surfaces (Deep Finnect Dark + Glass Finish)
-  static const Color surfaceLight = Color(0xFFFAFAFA);
-  static const Color surfaceDark = Color(0xFF090A0E); // Deep Cosmic Dark
-  static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color cardDark = Color(0xFF141622); // Translucent 3D Glass
+  // Surfaces
+  static const Color surfaceLight = Color(0xFFF3F7FE); // Ice Light Surface
+  static const Color surfaceDark = Color(0xFF031130); // Midnight Navy Dark Surface
+  static const Color cardLight = Colors.white;
+  static const Color cardDark = Color(0xFF0A1838); // Liquid Glass Card
 
   // Default category palette
   static const List<Color> categoryPalette = <Color>[
-    Color(0xFFEF5350),
-    Color(0xFFAB47BC),
-    Color(0xFF5C6BC0),
-    Color(0xFF29B6F6),
+    Color(0xFF185DF1),
+    Color(0xFF00E5FF),
+    Color(0xFF7E57C2),
     Color(0xFF26A69A),
     Color(0xFF9CCC65),
     Color(0xFFFFCA28),

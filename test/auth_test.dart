@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:finnect/features/auth/domain/user_model.dart';
 import 'package:finnect/features/auth/data/auth_repository.dart';
 
@@ -38,12 +39,60 @@ void main() {
         email: 'newuser@example.com',
         password: 'securepassword',
         displayName: 'New User',
-        username: 'newuser',
+        username: 'newuser_unique',
       );
 
       expect(user.email, 'newuser@example.com');
       expect(user.displayName, 'New User');
       expect(repository.currentUser?.email, 'newuser@example.com');
+    });
+
+    test('enforces unique usernames on sign up', () async {
+      await repository.signUpWithEmailAndPassword(
+        email: 'user1@example.com',
+        password: 'password123',
+        displayName: 'User One',
+        username: 'unique_handle',
+      );
+
+      expect(
+        () async => await repository.signUpWithEmailAndPassword(
+          email: 'user2@example.com',
+          password: 'password123',
+          displayName: 'User Two',
+          username: 'UNIQUE_HANDLE', // Same handle case-insensitively
+        ),
+        throwsA(isA<FirebaseAuthException>()),
+      );
+    });
+
+    test('updateUserProfile updates details and prevents duplicate username', () async {
+      final user = await repository.signUpWithEmailAndPassword(
+        email: 'update_test@example.com',
+        password: 'password123',
+        displayName: 'Original Name',
+        username: 'orig_username',
+      );
+
+      final updated = await repository.updateUserProfile(
+        uid: user.uid,
+        displayName: 'New Display Name',
+        username: 'new_username_123',
+      );
+
+      expect(updated.displayName, 'New Display Name');
+      expect(updated.username, 'new_username_123');
+      expect(repository.currentUser?.displayName, 'New Display Name');
+
+      // Attempt to update to an existing handle (demo_user)
+      expect(
+        () async => await repository.updateUserProfile(
+          uid: user.uid,
+          displayName: 'New Display Name',
+          username: 'demo_user',
+        ),
+        throwsA(isA<FirebaseAuthException>()),
+      );
     });
 
     test('sign in succeeds with valid credentials', () async {

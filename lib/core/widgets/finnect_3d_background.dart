@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Deep oceanic ambient background supporting Pinterest-style Liquid Glassmorphism.
+/// Deep Midnight Navy & Sapphire Blue ambient gradient background (#031130, #185df1, #f3f7fe).
 class Finnect3DBackground extends StatelessWidget {
   final Widget child;
 
@@ -12,20 +12,20 @@ class Finnect3DBackground extends StatelessWidget {
 
     if (!isDark) {
       return Container(
-        color: const Color(0xFFEBF3FA),
+        color: const Color(0xFFF3F7FE),
         child: Stack(
           children: [
             Positioned(
               top: -100,
               right: -80,
-              width: 350,
-              height: 350,
+              width: 380,
+              height: 380,
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF1E88E5).withValues(alpha: 0.18),
+                      const Color(0xFF185DF1).withValues(alpha: 0.18),
                       Colors.transparent,
                     ],
                   ),
@@ -40,66 +40,66 @@ class Finnect3DBackground extends StatelessWidget {
 
     return Stack(
       children: [
-        // Base Deep Oceanic Slate Gradient
+        // Base Color Combo Gradient (#031130 to #0B1F4D)
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF0D1424), // Deep oceanic slate top
-                Color(0xFF121B30), // Mid slate
-                Color(0xFF090D18), // Deep slate bottom
+                Color(0xFF031130), // Deep Midnight Navy Top
+                Color(0xFF0A1C44), // Mid Navy
+                Color(0xFF020B20), // Dark Navy Bottom
               ],
             ),
           ),
         ),
 
-        // Primary Ambient Top-Right Radial Glow Aura (Cyan/Blue Aura)
+        // Primary Ambient Sapphire Blue Radial Glow (#185DF1)
         Positioned(
-          top: -120,
-          right: -90,
-          width: 420,
-          height: 420,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF00B4D8).withValues(alpha: 0.28),
-                  const Color(0xFF1E88E5).withValues(alpha: 0.12),
-                  Colors.transparent,
-                ],
-                stops: const [0.0, 0.5, 1.0],
-              ),
-            ),
-          ),
-        ),
-
-        // Secondary Mid Center-Left Accent Aura (Deep Violet Aura)
-        Positioned(
-          top: 220,
-          left: -110,
-          width: 380,
-          height: 380,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF7E57C2).withValues(alpha: 0.25),
-                  const Color(0xFF3F51B5).withValues(alpha: 0.10),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Tertiary Bottom-Right Ambient Aura (Electric Teal Glow)
-        Positioned(
-          bottom: -100,
+          top: -110,
           right: -80,
+          width: 440,
+          height: 440,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF185DF1).withValues(alpha: 0.38),
+                  const Color(0xFF185DF1).withValues(alpha: 0.12),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.55, 1.0],
+              ),
+            ),
+          ),
+        ),
+
+        // Secondary Frosted Ice Highlight Aura (#F3F7FE)
+        Positioned(
+          top: 200,
+          left: -120,
+          width: 400,
+          height: 400,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFF3F7FE).withValues(alpha: 0.12),
+                  const Color(0xFF185DF1).withValues(alpha: 0.15),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // Tertiary Bottom-Right Sapphire Ambient Glow
+        Positioned(
+          bottom: -90,
+          right: -70,
           width: 360,
           height: 360,
           child: Container(
@@ -107,7 +107,7 @@ class Finnect3DBackground extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF00E5FF).withValues(alpha: 0.20),
+                  const Color(0xFF185DF1).withValues(alpha: 0.25),
                   Colors.transparent,
                 ],
               ),

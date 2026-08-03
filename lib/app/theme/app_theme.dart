@@ -53,7 +53,7 @@ abstract class AppTheme {
 
       cardTheme: CardThemeData(
         color: isDark
-            ? const Color(0xFF1A233A).withValues(alpha: 0.60)
+            ? const Color(0xFF0A1838).withValues(alpha: 0.65)
             : Colors.white.withValues(alpha: 0.70),
         elevation: isDark ? 8 : 4,
         margin: EdgeInsets.zero,
@@ -61,7 +61,7 @@ abstract class AppTheme {
           borderRadius: BorderRadius.circular(24.0),
           side: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.22)
+                ? const Color(0xFFF3F7FE).withValues(alpha: 0.20)
                 : Colors.white.withValues(alpha: 0.65),
             width: 1.2,
           ),
@@ -71,15 +71,15 @@ abstract class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark
-            ? const Color(0xFF161F33).withValues(alpha: 0.75)
-            : Colors.white.withValues(alpha: 0.85),
+            ? const Color(0xFF0C1D42).withValues(alpha: 0.75)
+            : const Color(0xFFF3F7FE),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.md),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.25)
+                ? const Color(0xFFF3F7FE).withValues(alpha: 0.22)
                 : scheme.outlineVariant.withValues(alpha: 0.5),
             width: 1.2,
           ),
@@ -88,7 +88,7 @@ abstract class AppTheme {
           borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.25)
+                ? const Color(0xFFF3F7FE).withValues(alpha: 0.22)
                 : scheme.outlineVariant.withValues(alpha: 0.5),
             width: 1.2,
           ),

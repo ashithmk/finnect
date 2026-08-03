@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/widgets/app_scaffold_shell.dart';
 import '../../features/analytics/presentation/screens/analytics_screen.dart';
 import '../../features/auth/data/auth_providers.dart';
+import '../../features/auth/domain/user_model.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
@@ -22,14 +23,21 @@ import 'route_names.dart';
 /// Root navigator key — lets non-shell routes still fully cover the screen above bottom nav.
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
-/// Helper class to convert a Stream into a [ChangeNotifier] for [GoRouter.refreshListenable].
+/// Helper class to convert an authentication Stream into a [ChangeNotifier] for [GoRouter.refreshListenable].
+/// Only notifies listeners when the logged-in status actually changes (logged in vs logged out).
 class GoRouterRefreshStream extends ChangeNotifier {
-  late final StreamSubscription<dynamic> _subscription;
+  late final StreamSubscription<AppUser?> _subscription;
+  bool? _lastIsLoggedIn;
 
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
+  GoRouterRefreshStream(Stream<AppUser?> stream) {
     _subscription = stream.listen(
-      (dynamic _) => notifyListeners(),
+      (user) {
+        final isLoggedIn = user != null;
+        if (_lastIsLoggedIn != isLoggedIn) {
+          _lastIsLoggedIn = isLoggedIn;
+          notifyListeners();
+        }
+      },
     );
   }
 

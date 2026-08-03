@@ -18,6 +18,16 @@ class _FriendRequestsSheetState extends ConsumerState<FriendRequestsSheet> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(userSearchQueryProvider.notifier).state = '';
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -65,7 +75,11 @@ class _FriendRequestsSheetState extends ConsumerState<FriendRequestsSheet> {
           TextField(
             controller: _searchController,
             onChanged: (val) {
-              ref.read(userSearchQueryProvider.notifier).state = val;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  ref.read(userSearchQueryProvider.notifier).state = val;
+                }
+              });
             },
             decoration: InputDecoration(
               hintText: 'Search users by @username, name, or email...',
@@ -75,7 +89,11 @@ class _FriendRequestsSheetState extends ConsumerState<FriendRequestsSheet> {
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         _searchController.clear();
-                        ref.read(userSearchQueryProvider.notifier).state = '';
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            ref.read(userSearchQueryProvider.notifier).state = '';
+                          }
+                        });
                       },
                     )
                   : null,
@@ -92,182 +110,188 @@ class _FriendRequestsSheetState extends ConsumerState<FriendRequestsSheet> {
 
           // Scrollable List Content
           Expanded(
-            child: ListView(
-              children: [
-                if (isSearching) ...[
-                  Text(
-                    'Search Results',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: AppSizes.xs),
-                  const _SheetSearchResultsList(),
-                  const SizedBox(height: AppSizes.lg),
-                ] else ...[
-                  // 1. Incoming Friend Requests
-                  Text(
-                    'Incoming Requests',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: AppSizes.xs),
-                  pendingRequestsAsync.when(
-                    data: (requests) {
-                      if (requests.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                          child: Text(
-                            'No incoming friend requests.',
-                            style: context.textStyles.bodySmall?.copyWith(
-                              color: context.colors.onSurfaceVariant,
-                            ),
-                          ),
-                        );
-                      }
-
-                      return Column(
-                        children: requests.map((user) {
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: AppSizes.sm),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: theme.colorScheme.primaryContainer,
-                                child: Text(
-                                  user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
-                                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+            child: isSearching
+                ? Column(
+                    key: const ValueKey('search_view_branch'),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Search Results',
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSizes.xs),
+                      const Expanded(child: _SheetSearchResultsList(key: ValueKey('search_results_list_widget'))),
+                    ],
+                  )
+                : ListView(
+                    key: const ValueKey('normal_view_branch'),
+                    children: [
+                      // 1. Incoming Friend Requests
+                      Text(
+                        'Incoming Requests',
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSizes.xs),
+                      pendingRequestsAsync.when(
+                        data: (requests) {
+                          if (requests.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: AppSizes.sm),
+                              child: Text(
+                                'No incoming friend requests.',
+                                style: context.textStyles.bodySmall?.copyWith(
+                                  color: context.colors.onSurfaceVariant,
                                 ),
                               ),
-                              title: Text(user.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(user.formattedUsername),
-                              trailing: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 135),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.close, color: Colors.redAccent),
-                                      tooltip: 'Decline',
-                                      onPressed: () async {
-                                        final success = await ref
-                                            .read(socialControllerProvider.notifier)
-                                            .rejectFriendRequest(user.uid);
-                                        if (context.mounted && success) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Declined request from ${user.displayName}.'),
-                                              behavior: SnackBarBehavior.floating,
-                                            ),
-                                          );
-                                        }
-                                      },
+                            );
+                          }
+
+                          return Column(
+                            children: requests.map((user) {
+                              return Card(
+                                key: ValueKey('req_${user.uid}'),
+                                margin: const EdgeInsets.only(bottom: AppSizes.sm),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: theme.colorScheme.primaryContainer,
+                                    child: Text(
+                                      user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
+                                      style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
                                     ),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        foregroundColor: Colors.white,
+                                  ),
+                                  title: Text(user.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  subtitle: Text(user.formattedUsername),
+                                  trailing: ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 135),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.close, color: Colors.redAccent),
+                                          tooltip: 'Decline',
+                                          onPressed: () async {
+                                            final success = await ref
+                                                .read(socialControllerProvider.notifier)
+                                                .rejectFriendRequest(user.uid);
+                                            if (context.mounted && success) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Declined request from ${user.displayName}.'),
+                                                  behavior: SnackBarBehavior.floating,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.green,
+                                            foregroundColor: Colors.white,
+                                            visualDensity: VisualDensity.compact,
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          ),
+                                          onPressed: () async {
+                                            final success = await ref
+                                                .read(socialControllerProvider.notifier)
+                                                .acceptFriendRequest(user.uid);
+                                            if (context.mounted && success) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('You are now friends with ${user.displayName}! 🎉'),
+                                                  behavior: SnackBarBehavior.floating,
+                                                  backgroundColor: Colors.green,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          icon: const Icon(Icons.check, size: 14),
+                                          label: const Text('Accept'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, stack) => Text('Error loading requests: $err'),
+                      ),
+                      const SizedBox(height: AppSizes.lg),
+
+                      // 2. Sent / Outgoing Pending Requests (with Cancel Request button)
+                      Text(
+                        'Sent Pending Requests',
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSizes.xs),
+                      sentRequestsAsync.when(
+                        data: (sentRequests) {
+                          if (sentRequests.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: AppSizes.sm),
+                              child: Text(
+                                'No sent pending requests.',
+                                style: context.textStyles.bodySmall?.copyWith(
+                                  color: context.colors.onSurfaceVariant,
+                                ),
+                              ),
+                            );
+                          }
+
+                          return Column(
+                            children: sentRequests.map((user) {
+                              return Card(
+                                key: ValueKey('sent_${user.uid}'),
+                                margin: const EdgeInsets.only(bottom: AppSizes.sm),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: theme.colorScheme.secondaryContainer,
+                                    child: Text(
+                                      user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
+                                      style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  title: Text(user.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  subtitle: Text(user.formattedUsername),
+                                  trailing: SizedBox(
+                                    width: 130,
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.redAccent,
+                                        side: const BorderSide(color: Colors.redAccent),
                                         visualDensity: VisualDensity.compact,
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       ),
                                       onPressed: () async {
                                         final success = await ref
                                             .read(socialControllerProvider.notifier)
-                                            .acceptFriendRequest(user.uid);
+                                            .cancelFriendRequest(user.uid);
                                         if (context.mounted && success) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('You are now friends with ${user.displayName}! 🎉'),
+                                              content: Text('Cancelled request sent to ${user.displayName}.'),
                                               behavior: SnackBarBehavior.floating,
-                                              backgroundColor: Colors.green,
                                             ),
                                           );
                                         }
                                       },
-                                      icon: const Icon(Icons.check, size: 14),
-                                      label: const Text('Accept'),
+                                      icon: const Icon(Icons.cancel_outlined, size: 14),
+                                      label: const Text('Cancel'),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (err, stack) => Text('Error loading requests: $err'),
-                  ),
-                  const SizedBox(height: AppSizes.lg),
-
-                  // 2. Sent / Outgoing Pending Requests (with Cancel Request button)
-                  Text(
-                    'Sent Pending Requests',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: AppSizes.xs),
-                  sentRequestsAsync.when(
-                    data: (sentRequests) {
-                      if (sentRequests.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                          child: Text(
-                            'No sent pending requests.',
-                            style: context.textStyles.bodySmall?.copyWith(
-                              color: context.colors.onSurfaceVariant,
-                            ),
-                          ),
-                        );
-                      }
-
-                      return Column(
-                        children: sentRequests.map((user) {
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: AppSizes.sm),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: theme.colorScheme.secondaryContainer,
-                                child: Text(
-                                  user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
-                                  style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              title: Text(user.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(user.formattedUsername),
-                              trailing: SizedBox(
-                                width: 130,
-                                child: OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.redAccent,
-                                    side: const BorderSide(color: Colors.redAccent),
-                                    visualDensity: VisualDensity.compact,
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   ),
-                                  onPressed: () async {
-                                    final success = await ref
-                                        .read(socialControllerProvider.notifier)
-                                        .cancelFriendRequest(user.uid);
-                                    if (context.mounted && success) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Cancelled request sent to ${user.displayName}.'),
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  icon: const Icon(Icons.cancel_outlined, size: 14),
-                                  label: const Text('Cancel'),
                                 ),
-                              ),
-                            ),
+                              );
+                            }).toList(),
                           );
-                        }).toList(),
-                      );
-                    },
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (err, stack) => Text('Error loading sent requests: $err'),
+                        },
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, stack) => Text('Error loading sent requests: $err'),
+                      ),
+                    ],
                   ),
-                ],
-              ],
-            ),
           ),
         ],
       ),
@@ -276,7 +300,7 @@ class _FriendRequestsSheetState extends ConsumerState<FriendRequestsSheet> {
 }
 
 class _SheetSearchResultsList extends ConsumerWidget {
-  const _SheetSearchResultsList();
+  const _SheetSearchResultsList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -289,18 +313,23 @@ class _SheetSearchResultsList extends ConsumerWidget {
       data: (results) {
         if (results.isEmpty) {
           return const Padding(
+            key: ValueKey('search_empty_state'),
             padding: EdgeInsets.all(AppSizes.md),
             child: Text('No matching users found.', textAlign: TextAlign.center),
           );
         }
 
-        return Column(
-          children: results.map((user) {
+        return ListView.builder(
+          key: ValueKey('search_results_builder_${results.length}'),
+          itemCount: results.length,
+          itemBuilder: (context, index) {
+            final user = results[index];
             final isAccepted = user.status == FriendshipStatus.accepted;
             final isPending = user.status == FriendshipStatus.pending;
             final isOutgoing = isPending && user.requesterId == currentUserId;
 
             return Card(
+              key: ValueKey('search_${user.uid}'),
               margin: const EdgeInsets.only(bottom: AppSizes.sm),
               child: ListTile(
                 leading: CircleAvatar(
@@ -354,11 +383,11 @@ class _SheetSearchResultsList extends ConsumerWidget {
                 ),
               ),
             );
-          }).toList(),
+          },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Search error: $err'),
+      loading: () => const Center(key: ValueKey('search_loading_state'), child: CircularProgressIndicator()),
+      error: (err, stack) => Text('Search error: $err', key: const ValueKey('search_error_state')),
     );
   }
 }

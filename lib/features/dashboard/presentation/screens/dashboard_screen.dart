@@ -137,9 +137,9 @@ class _TotalBalanceCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSizes.lg),
       gradient: const LinearGradient(
         colors: [
-          Color(0xFF1E88E5), // Finnect Blue
-          Color(0xFF3F51B5), // Finnect Indigo
-          Color(0xFF7E57C2), // Finnect Violet
+          Color(0xFF031130), // Deep Midnight Navy
+          Color(0xFF185DF1), // Electric Sapphire Blue
+          Color(0xFF0A2B7A), // Deep Blue Accent
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

@@ -49,6 +49,9 @@ abstract class AuthRepository {
     required String username,
     String? photoUrl,
   });
+
+  /// Checks if a username is already taken by another user.
+  Future<bool> isUsernameTaken(String username, {String? excludeUid});
 }
 
 /// Firebase implementation of [AuthRepository] using FirebaseAuth & Cloud Firestore.
@@ -92,12 +95,57 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<bool> isUsernameTaken(String username, {String? excludeUid}) async {
+    final clean = username.trim().replaceAll('@', '').toLowerCase();
+    if (clean.isEmpty) return false;
+
+    // Check shared mock user database
+    for (final user in LocalMockAuthRepository.sharedMockUsersDb.values) {
+      if (user.uid != excludeUid &&
+          user.username.trim().replaceAll('@', '').toLowerCase() == clean) {
+        return true;
+      }
+    }
+
+    // Query Firestore collection
+    try {
+      final querySnap = await _firestore.collection('users').get();
+      for (final doc in querySnap.docs) {
+        if (doc.id == excludeUid) continue;
+        final data = doc.data();
+        final uName = (data['username'] as String? ?? data['userName'] as String? ?? '')
+            .trim()
+            .replaceAll('@', '')
+            .toLowerCase();
+        final uId = (data['uid'] as String? ?? doc.id).trim();
+        if (uId != excludeUid && uName == clean) {
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('Warning: isUsernameTaken Firestore query error: $e');
+    }
+
+    return false;
+  }
+
+  @override
   Future<AppUser> signUpWithEmailAndPassword({
     required String email,
     required String password,
     required String displayName,
     required String username,
   }) async {
+    final cleanDisplay = displayName.trim();
+    final cleanUsername = username.trim().replaceAll('@', '');
+
+    if (cleanUsername.isNotEmpty && await isUsernameTaken(cleanUsername)) {
+      throw FirebaseAuthException(
+        code: 'username-already-in-use',
+        message: 'Username @$cleanUsername is already taken. Please choose another username.',
+      );
+    }
+
     final credential = await _firebaseAuth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -109,8 +157,6 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     final uid = fbUser.uid;
-    final cleanDisplay = displayName.trim();
-    final cleanUsername = username.trim().replaceAll('@', '');
 
     final newUser = AppUser(
       uid: uid,
@@ -230,13 +276,23 @@ class FirebaseAuthRepository implements AuthRepository {
       }
 
       final nameParts = (firebaseUser.displayName ?? 'Google User').toLowerCase().split(' ');
-      final username = nameParts.first.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
+      final rawName = nameParts.first.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
+      final baseUsername = rawName.isNotEmpty
+          ? rawName
+          : 'user_${firebaseUser.uid.substring(0, firebaseUser.uid.length > 5 ? 5 : firebaseUser.uid.length)}';
+
+      String finalUsername = baseUsername;
+      int counter = 1;
+      while (await isUsernameTaken(finalUsername, excludeUid: firebaseUser.uid)) {
+        finalUsername = '$baseUsername$counter';
+        counter++;
+      }
 
       final newUser = AppUser(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
         displayName: firebaseUser.displayName ?? 'Google User',
-        username: username.isNotEmpty ? username : 'user_${firebaseUser.uid.substring(0, firebaseUser.uid.length > 6 ? 6 : firebaseUser.uid.length)}',
+        username: finalUsername,
         photoUrl: firebaseUser.photoURL,
         createdAt: DateTime.now(),
       );
@@ -249,11 +305,10 @@ class FirebaseAuthRepository implements AuthRepository {
       LocalMockAuthRepository.sharedMockUsersDb[firebaseUser.uid] = newUser;
       return newUser;
     } catch (e) {
-      debugPrint('Warning: Native Google Sign-In config missing or error: $e');
-      // Fallback for unconfigured Android client ID
+      debugPrint('Warning: Native Google Sign-In notice or fallback: $e');
       final googleUser = AppUser(
         uid: 'google_user_1',
-        email: 'alex.google@journey.com',
+        email: 'alex.google@finnect.com',
         displayName: 'Alex Google',
         username: 'alex_google',
         createdAt: DateTime.utc(2026, 1, 1),
@@ -288,6 +343,7 @@ class FirebaseAuthRepository implements AuthRepository {
       } catch (e) {
         debugPrint('Warning: Could not delete user doc from Firestore: $e');
       }
+      LocalMockAuthRepository.sharedMockUsersDb.remove(uid);
       try {
         await user.delete();
       } catch (e) {
@@ -320,6 +376,13 @@ class FirebaseAuthRepository implements AuthRepository {
     final cleanUsername = username.trim().replaceAll('@', '');
     final cleanDisplay = displayName.trim();
 
+    if (cleanUsername.isNotEmpty && await isUsernameTaken(cleanUsername, excludeUid: uid)) {
+      throw FirebaseAuthException(
+        code: 'username-already-in-use',
+        message: 'Username @$cleanUsername is already taken. Please choose another username.',
+      );
+    }
+
     final existing = await getUserProfile(uid);
     final updatedUser = AppUser(
       uid: uid,
@@ -336,6 +399,8 @@ class FirebaseAuthRepository implements AuthRepository {
     } catch (e) {
       debugPrint('Warning: Could not update Firestore profile: $e');
     }
+
+    LocalMockAuthRepository.sharedMockUsersDb[uid] = updatedUser;
 
     try {
       if (cleanDisplay.isNotEmpty) {
@@ -401,6 +466,20 @@ class LocalMockAuthRepository implements AuthRepository {
   AppUser? get currentUser => _currentUser;
 
   @override
+  Future<bool> isUsernameTaken(String username, {String? excludeUid}) async {
+    final clean = username.trim().replaceAll('@', '').toLowerCase();
+    if (clean.isEmpty) return false;
+
+    for (final user in sharedMockUsersDb.values) {
+      if (user.uid != excludeUid &&
+          user.username.trim().replaceAll('@', '').toLowerCase() == clean) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   Future<AppUser> signUpWithEmailAndPassword({
     required String email,
     required String password,
@@ -409,6 +488,7 @@ class LocalMockAuthRepository implements AuthRepository {
   }) async {
     await Future.delayed(const Duration(milliseconds: 300));
     final normalizedEmail = email.trim().toLowerCase();
+    final cleanUsername = username.trim().replaceAll('@', '');
 
     for (final user in sharedMockUsersDb.values) {
       if (user.email.toLowerCase() == normalizedEmail) {
@@ -419,8 +499,14 @@ class LocalMockAuthRepository implements AuthRepository {
       }
     }
 
+    if (cleanUsername.isNotEmpty && await isUsernameTaken(cleanUsername)) {
+      throw FirebaseAuthException(
+        code: 'username-already-in-use',
+        message: 'Username @$cleanUsername is already taken. Please choose another username.',
+      );
+    }
+
     final uid = 'user_${DateTime.now().millisecondsSinceEpoch}';
-    final cleanUsername = username.trim().replaceAll('@', '');
 
     final newUser = AppUser(
       uid: uid,
@@ -525,12 +611,20 @@ class LocalMockAuthRepository implements AuthRepository {
     String? photoUrl,
   }) async {
     await Future.delayed(const Duration(milliseconds: 100));
+    final cleanUsername = username.trim().replaceAll('@', '');
+    if (cleanUsername.isNotEmpty && await isUsernameTaken(cleanUsername, excludeUid: uid)) {
+      throw FirebaseAuthException(
+        code: 'username-already-in-use',
+        message: 'Username @$cleanUsername is already taken. Please choose another username.',
+      );
+    }
+
     final existing = sharedMockUsersDb[uid] ?? _currentUser;
     final updated = AppUser(
       uid: uid,
       email: existing?.email ?? '',
       displayName: displayName.trim().isNotEmpty ? displayName.trim() : (existing?.displayName ?? 'User'),
-      username: username.trim().replaceAll('@', ''),
+      username: cleanUsername,
       photoUrl: photoUrl ?? existing?.photoUrl,
       createdAt: existing?.createdAt ?? DateTime.now(),
       currency: existing?.currency ?? 'INR',

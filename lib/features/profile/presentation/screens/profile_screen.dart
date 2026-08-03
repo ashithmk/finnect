@@ -520,6 +520,25 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
           const SnackBar(
             content: Text('Profile updated successfully! ✨'),
             behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final authState = ref.read(authControllerProvider);
+        String msg = 'Failed to update profile. Please try again.';
+        if (authState.hasError && authState.error != null) {
+          final err = authState.error;
+          if (err is Exception) {
+            msg = err.toString().replaceAll('Exception: ', '').replaceAll('FirebaseAuthException: ', '');
+          } else {
+            msg = err.toString();
+          }
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.redAccent,
           ),
         );
       }

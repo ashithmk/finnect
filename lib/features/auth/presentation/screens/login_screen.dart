@@ -135,6 +135,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
     if (success) {
       debugPrint('Google Sign-In succeeded! Navigating to dashboard.');
+      ref.invalidate(authStateChangesProvider);
       context.go(RouteNames.dashboard);
     }
   }

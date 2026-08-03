@@ -116,6 +116,7 @@ class AuthController extends Notifier<AsyncValue<void>> {
         photoUrl: photoUrl,
       );
     });
+    ref.invalidate(authStateChangesProvider);
     return !state.hasError;
   }
 

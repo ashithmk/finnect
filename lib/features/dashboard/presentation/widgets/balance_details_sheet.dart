@@ -28,134 +28,9 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
     TransactionModel tx,
     bool isLend,
   ) {
-    final remaining = tx.remainingAmount;
-    final controller = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
     showDialog(
       context: context,
-      builder: (dialogCtx) {
-        final theme = Theme.of(dialogCtx);
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-            side: BorderSide(
-              color: Colors.white.withValues(alpha: 0.5),
-              width: 1.2,
-            ),
-          ),
-          backgroundColor: theme.brightness == Brightness.dark
-              ? const Color(0xFF14192E).withValues(alpha: 0.95)
-              : Colors.white.withValues(alpha: 0.95),
-          title: Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: isLend ? Colors.teal.withValues(alpha: 0.2) : Colors.deepOrange.withValues(alpha: 0.2),
-                child: Icon(
-                  Icons.remove,
-                  size: 18,
-                  color: isLend ? Colors.teal : Colors.deepOrange,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  isLend ? 'Money Got Back' : 'Paid Dues Back',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${tx.title} · Outstanding: ₹${remaining.toStringAsFixed(2)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: AppSizes.md),
-                TextFormField(
-                  controller: controller,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  autofocus: true,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: isLend ? 'Amount Got Back' : 'Amount Paid Back',
-                    prefixText: '₹ ',
-                    hintText: '0.00',
-                  ),
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please enter an amount';
-                    }
-                    final parsed = double.tryParse(val.trim());
-                    if (parsed == null || parsed <= 0) {
-                      return 'Enter a valid amount > 0';
-                    }
-                    if (parsed > remaining + 0.01) {
-                      return 'Cannot exceed remaining ₹${remaining.toStringAsFixed(2)}';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogCtx).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isLend ? Colors.teal : Colors.deepOrange,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                final enteredAmount = double.parse(controller.text.trim());
-                Navigator.of(dialogCtx).pop();
-
-                final newRepaid = tx.repaidAmount + enteredAmount;
-                final shouldClose = newRepaid >= (tx.amount - 0.01);
-
-                final updatedTx = tx.copyWith(
-                  repaidAmount: newRepaid,
-                  isClosed: shouldClose,
-                );
-
-                final success = await ref
-                    .read(transactionControllerProvider.notifier)
-                    .updateTransaction(updatedTx);
-
-                if (context.mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isLend
-                            ? 'Got ₹${enteredAmount.toStringAsFixed(2)} back! Total Balance updated.'
-                            : 'Paid ₹${enteredAmount.toStringAsFixed(2)} back! Total Balance updated.',
-                      ),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Save Repayment'),
-            ),
-          ],
-        );
-      },
+      builder: (dialogCtx) => _RepaymentDialog(tx: tx, isLend: isLend),
     );
   }
 
@@ -544,9 +419,9 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
               borderRadius: BorderRadius.circular(AppSizes.radiusLg),
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFF1E88E5), // Finnect Blue
-                  Color(0xFF3F51B5), // Finnect Indigo
-                  Color(0xFF7E57C2), // Finnect Violet
+                  Color(0xFF031130), // Deep Midnight Navy
+                  Color(0xFF185DF1), // Electric Sapphire Blue
+                  Color(0xFF0A2B7A), // Deep Blue Accent
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -696,6 +571,163 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RepaymentDialog extends ConsumerStatefulWidget {
+  final TransactionModel tx;
+  final bool isLend;
+
+  const _RepaymentDialog({
+    required this.tx,
+    required this.isLend,
+  });
+
+  @override
+  ConsumerState<_RepaymentDialog> createState() => _RepaymentDialogState();
+}
+
+class _RepaymentDialogState extends ConsumerState<_RepaymentDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final remaining = widget.tx.remainingAmount;
+    final isLend = widget.isLend;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        side: BorderSide(
+          color: Colors.white.withValues(alpha: 0.5),
+          width: 1.2,
+        ),
+      ),
+      backgroundColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF14192E).withValues(alpha: 0.95)
+          : Colors.white.withValues(alpha: 0.95),
+      title: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: isLend ? Colors.teal.withValues(alpha: 0.2) : Colors.deepOrange.withValues(alpha: 0.2),
+            child: Icon(
+              Icons.remove,
+              size: 18,
+              color: isLend ? Colors.teal : Colors.deepOrange,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isLend ? 'Money Got Back' : 'Paid Dues Back',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${widget.tx.title} · Outstanding: ₹${remaining.toStringAsFixed(2)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
+            TextFormField(
+              controller: _controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              decoration: InputDecoration(
+                labelText: isLend ? 'Amount Got Back' : 'Amount Paid Back',
+                prefixText: '₹ ',
+                hintText: '0.00',
+              ),
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) {
+                  return 'Please enter an amount';
+                }
+                final parsed = double.tryParse(val.trim());
+                if (parsed == null || parsed <= 0) {
+                  return 'Enter a valid amount > 0';
+                }
+                if (parsed > remaining + 0.01) {
+                  return 'Cannot exceed remaining ₹${remaining.toStringAsFixed(2)}';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isLend ? Colors.teal : Colors.deepOrange,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () async {
+            if (!_formKey.currentState!.validate()) return;
+            final enteredAmount = double.parse(_controller.text.trim());
+            Navigator.of(context).pop();
+
+            final newRepaid = widget.tx.repaidAmount + enteredAmount;
+            final shouldClose = newRepaid >= (widget.tx.amount - 0.01);
+
+            final updatedTx = widget.tx.copyWith(
+              repaidAmount: newRepaid,
+              isClosed: shouldClose,
+            );
+
+            final success = await ref
+                .read(transactionControllerProvider.notifier)
+                .updateTransaction(updatedTx);
+
+            if (context.mounted && success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isLend
+                        ? 'Got ₹${enteredAmount.toStringAsFixed(2)} back! Total Balance updated.'
+                        : 'Paid ₹${enteredAmount.toStringAsFixed(2)} back! Total Balance updated.',
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          },
+          child: const Text('Save Repayment'),
+        ),
+      ],
     );
   }
 }
