@@ -96,7 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         case 'invalid-credential':
         case 'wrong-password':
         case 'user-not-found':
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+          errorMessage = 'Invalid email/username or password. If you deleted this account from Firebase or haven\'t registered yet, please tap "Sign Up" below to create your account.';
           break;
         case 'invalid-email':
           errorMessage = 'Please enter a valid email address.';

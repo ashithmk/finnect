@@ -115,6 +115,26 @@ void main() {
       expect(repository.currentUser, isNotNull);
     });
 
+    test('sign in succeeds with username handle or email', () async {
+      await repository.signUpWithEmailAndPassword(
+        email: 'handlelogin@example.com',
+        password: 'password123',
+        displayName: 'Handle User',
+        username: 'my_unique_handle',
+      );
+
+      await repository.signOut();
+
+      // Login using username handle '@my_unique_handle'
+      final signedInUser = await repository.signInWithEmailAndPassword(
+        email: '@my_unique_handle',
+        password: 'password123',
+      );
+
+      expect(signedInUser.email, 'handlelogin@example.com');
+      expect(repository.currentUser, isNotNull);
+    });
+
     test('sign out resets current user to null', () async {
       await repository.signUpWithEmailAndPassword(
         email: 'logout@example.com',

@@ -197,21 +197,43 @@ class FirebaseAuthRepository implements AuthRepository {
     final input = email.trim();
     String targetEmail = input;
 
-    // Lookup user email by username if input is a username
+    // Lookup user email by username if input is a username handle (not containing @)
     if (!input.contains('@')) {
-      final cleanUsername = input.replaceAll('@', '').toLowerCase();
-      try {
-        final querySnap = await _firestore
-            .collection('users')
-            .where('username', isEqualTo: cleanUsername)
-            .get();
-        if (querySnap.docs.isNotEmpty) {
-          final userMap = querySnap.docs.first.data();
-          targetEmail = userMap['email'] ?? targetEmail;
+      final cleanHandle = input.replaceAll('@', '').toLowerCase();
+
+      // 1. Check local in-memory DB first
+      for (final u in LocalMockAuthRepository.sharedMockUsersDb.values) {
+        final uHandle = u.username.trim().replaceAll('@', '').toLowerCase();
+        if (uHandle == cleanHandle && u.email.contains('@')) {
+          targetEmail = u.email;
+          break;
         }
-      } catch (e) {
-        debugPrint('Warning: Could not lookup email by username: $e');
       }
+
+      // 2. If targetEmail is still not an email, search Firestore users collection case-insensitively
+      if (!targetEmail.contains('@')) {
+        try {
+          final querySnap = await _firestore.collection('users').get();
+          for (final doc in querySnap.docs) {
+            final data = doc.data();
+            final dbUsername = (data['username'] as String? ?? '').trim().replaceAll('@', '').toLowerCase();
+            final dbEmail = (data['email'] as String? ?? '').trim();
+            if (dbUsername == cleanHandle && dbEmail.contains('@')) {
+              targetEmail = dbEmail;
+              break;
+            }
+          }
+        } catch (e) {
+          debugPrint('Warning: Could not lookup email by username in Firestore: $e');
+        }
+      }
+    }
+
+    if (!targetEmail.contains('@')) {
+      throw FirebaseAuthException(
+        code: 'user-not-found',
+        message: 'No account found with handle "@$input". If you deleted your account from Firebase, please tap Sign Up to create a new account.',
+      );
     }
 
     final credential = await _firebaseAuth.signInWithEmailAndPassword(
