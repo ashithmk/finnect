@@ -8,6 +8,7 @@ import '../../../../app/constants/app_strings.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../app/utils/currency_formatter.dart';
 import '../../../../app/utils/extensions.dart';
+import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../../core/widgets/loaders.dart';
 import '../../data/transaction_providers.dart';
@@ -86,9 +87,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     subtitle: 'Tap the + button below or Add Balance on Home to log entries.',
                     actionLabel: 'Add Expense',
                     onAction: () {
-                      showModalBottomSheet(
+                      showAppModalBottomSheet(
                         context: context,
-                        isScrollControlled: true,
+                        ref: ref,
                         builder: (ctx) => const AddTransactionSheet(
                           initialType: TransactionType.expense,
                           lockType: true,
@@ -441,9 +442,13 @@ class _TransactionListTile extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
-            onPressed: () => _confirmDelete(context, ref),
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => _confirmDelete(context, ref),
+            child: const Padding(
+              padding: EdgeInsets.all(6.0),
+              child: Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+            ),
           ),
         ],
       ),

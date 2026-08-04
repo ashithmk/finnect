@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/constants/app_sizes.dart';
 import '../../../../app/utils/currency_formatter.dart';
 import '../../../../app/utils/extensions.dart';
+import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../../core/widgets/loaders.dart';
 import '../../../transactions/data/transaction_providers.dart';
@@ -15,10 +16,10 @@ import '../widgets/add_goal_sheet.dart';
 class GoalsScreen extends ConsumerWidget {
   const GoalsScreen({super.key});
 
-  void _showAddGoalSheet(BuildContext context, [GoalModel? existingGoal]) {
-    showModalBottomSheet(
+  void _showAddGoalSheet(BuildContext context, WidgetRef ref, [GoalModel? existingGoal]) {
+    showAppModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      ref: ref,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
@@ -88,7 +89,7 @@ class GoalsScreen extends ConsumerWidget {
           title: const Text('Wishlist Goals'),
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showAddGoalSheet(context),
+          onPressed: () => _showAddGoalSheet(context, ref),
           icon: const Icon(Icons.add),
           label: const Text('Add Goal'),
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -151,7 +152,7 @@ class GoalsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: AppSizes.md),
                           ElevatedButton.icon(
-                            onPressed: () => _showAddGoalSheet(context),
+                            onPressed: () => _showAddGoalSheet(context, ref),
                             icon: const Icon(Icons.add),
                             label: const Text('Create First Goal'),
                           ),
@@ -167,7 +168,7 @@ class GoalsScreen extends ConsumerWidget {
                         goal: goal,
                         totalSavings: totalSavings,
                         currency: currency,
-                        onEdit: () => _showAddGoalSheet(context, goal),
+                        onEdit: () => _showAddGoalSheet(context, ref, goal),
                       ),
                     ),
                 ],

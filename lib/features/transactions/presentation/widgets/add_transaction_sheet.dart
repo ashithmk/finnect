@@ -431,33 +431,37 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Top-Left Date Picker Chip
+                    // Top-Left Date Picker Chip (Plain & Subtle style matching History section)
                     InkWell(
                       onTap: isLoading ? null : _pickDate,
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white.withValues(alpha: 0.18)
+                                : Colors.black.withValues(alpha: 0.12),
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.calendar_today,
+                              Icons.calendar_today_outlined,
                               size: 14,
-                              color: Theme.of(context).colorScheme.primary,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               formattedDate,
                               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                             ),
                           ],

@@ -2,7 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../app/constants/app_sizes.dart';
 
-/// Primary Pinterest-style capsule pill button with optional icon badge and loading spinner.
+/// Primary Pinterest/AuthKit-style capsule pill button with signature #6967FB Indigo gradient,
+/// specular border outline, and crisp white typography.
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -22,15 +23,34 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = backgroundColor ?? theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Dual-Color Theme Preset Gradient
+    final buttonGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        theme.colorScheme.primary,
+        theme.colorScheme.secondary,
+      ],
+    );
+
+    final border = isDark
+        ? Border.all(
+            color: theme.colorScheme.secondary.withValues(alpha: 0.45),
+            width: 1.2,
+          )
+        : null;
 
     return Container(
       decoration: BoxDecoration(
-        color: bg,
+        gradient: backgroundColor == null ? buttonGradient : null,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(AppSizes.radiusPill),
+        border: border,
         boxShadow: [
           BoxShadow(
-            color: bg.withValues(alpha: 0.35),
+            color: theme.colorScheme.primary.withValues(alpha: 0.38),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -74,7 +94,7 @@ class PrimaryButton extends StatelessWidget {
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.black26,
+                              color: Colors.white24,
                             ),
                             child: Icon(icon, size: 14, color: Colors.white),
                           ),
@@ -111,11 +131,11 @@ class SecondaryButton extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppSizes.radiusPill),
         color: isDark
-            ? const Color(0xFF1E2942).withValues(alpha: 0.55)
-            : Colors.white.withValues(alpha: 0.65),
+            ? const Color(0xFF141926).withValues(alpha: 0.65)
+            : Colors.white.withValues(alpha: 0.70),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.25)
+              ? const Color(0xFF2A3650).withValues(alpha: 0.60)
               : Colors.white.withValues(alpha: 0.60),
           width: 1.2,
         ),
@@ -195,13 +215,13 @@ class FilterChipButton extends StatelessWidget {
           color: isSelected
               ? scheme.primary
               : (isDark
-                  ? const Color(0xFF1E2942).withValues(alpha: 0.50)
+                  ? const Color(0xFF141926).withValues(alpha: 0.50)
                   : Colors.white.withValues(alpha: 0.60)),
           borderRadius: BorderRadius.circular(AppSizes.radiusPill),
           border: Border.all(
             color: isSelected
                 ? Colors.white.withValues(alpha: 0.40)
-                : Colors.white.withValues(alpha: isDark ? 0.20 : 0.50),
+                : const Color(0xFF2A3650).withValues(alpha: isDark ? 0.40 : 0.50),
             width: 1,
           ),
           boxShadow: isSelected

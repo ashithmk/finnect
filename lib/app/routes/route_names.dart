@@ -13,13 +13,9 @@ abstract class RouteNames {
   // Shell (bottom nav) branches
   static const String dashboard = '/dashboard';
   static const String transactions = '/transactions';
-  static const String social = '/social';
   static const String analytics = '/analytics';
   static const String budget = '/budget';
   static const String profile = '/profile';
-
-  // Social & Groups
-  static const String groupDetail = '/social/group'; // :id
 
   // Transactions
   static const String addTransaction = '/transactions/add';

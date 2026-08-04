@@ -105,6 +105,7 @@ class AuthController extends Notifier<AsyncValue<void>> {
     required String displayName,
     required String username,
     String? photoUrl,
+    String? currency,
   }) async {
     final repository = ref.read(authRepositoryProvider);
     state = const AsyncValue.loading();
@@ -114,6 +115,7 @@ class AuthController extends Notifier<AsyncValue<void>> {
         displayName: displayName,
         username: username,
         photoUrl: photoUrl,
+        currency: currency,
       );
     });
     ref.invalidate(authStateChangesProvider);

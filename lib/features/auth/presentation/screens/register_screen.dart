@@ -116,7 +116,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Choose a unique @username to connect with friends & split bills',
+                        'Choose a unique @username for your account handle',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.white70,

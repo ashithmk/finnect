@@ -6,16 +6,18 @@ import 'package:intl/intl.dart';
 import '../../../../app/constants/app_sizes.dart';
 import '../../../../app/constants/app_strings.dart';
 import '../../../../app/routes/route_names.dart';
+import '../../../../app/theme/theme_providers.dart';
 import '../../../../app/utils/extensions.dart';
+import '../../../../core/providers/app_lock_providers.dart';
+import '../../../../core/services/app_lock_service.dart';
+import '../../../../core/providers/ui_providers.dart';
+import '../../../../core/widgets/buttons.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
-
 import '../../../auth/data/auth_providers.dart';
-import '../../../social/data/social_providers.dart';
-import '../../../social/domain/social_models.dart';
-import '../../../social/presentation/widgets/add_split_bill_sheet.dart';
-import '../../../social/presentation/widgets/friend_requests_sheet.dart';
 
-/// Redesigned Social Profile Screen with top-right Settings & Friends Chat Hub.
+
+
+/// Redesigned Profile Screen with top-right Settings.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -25,41 +27,18 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _openSettingsSheet(BuildContext context) {
-    showModalBottomSheet(
+    showAppModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      ref: ref,
       builder: (ctx) => const _SettingsSheet(),
     );
   }
 
   void _openEditProfileSheet(BuildContext context) {
-    showModalBottomSheet(
+    showAppModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      ref: ref,
       builder: (ctx) => const _EditProfileSheet(),
-    );
-  }
-
-  void _openDirectChatSheet(BuildContext context, UserFriendInfo friend) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _DirectChatSheet(friend: friend),
-    );
-  }
-
-  void _openFriendRequestsSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
-      ),
-      builder: (sheetContext) => const FriendRequestsSheet(),
     );
   }
 
@@ -69,7 +48,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (user == null) {
       return const SizedBox.shrink();
     }
-    final friendsAsync = ref.watch(friendsStreamProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
@@ -80,7 +58,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         appBar: AppBar(
           title: const Text(AppStrings.navProfile),
           actions: [
-            // Top Right Corner Settings Action
             IconButton(
               icon: const Icon(Icons.settings_outlined),
               tooltip: 'Settings',
@@ -91,207 +68,102 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         body: Builder(
           builder: (scaffoldContext) => ListView(
-          padding: const EdgeInsets.all(AppSizes.lg),
-          children: [
-            // User Header Profile Card
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSizes.lg),
-                child: Row(
-                  children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: colorScheme.primaryContainer,
-                          child: Text(
-                            user.displayName.isNotEmpty
-                                ? user.displayName[0].toUpperCase()
-                                : 'U',
-                            style: textTheme.headlineSmall?.copyWith(
-                              color: colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: InkWell(
-                            onTap: () => _openEditProfileSheet(scaffoldContext),
-                            child: CircleAvatar(
-                              radius: 12,
-                              backgroundColor: colorScheme.primary,
-                              child: const Icon(Icons.edit, size: 12, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: AppSizes.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(AppSizes.lg),
+            children: [
+              // User Header Profile Card
+              Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSizes.lg),
+                  child: Row(
+                    children: [
+                      Stack(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  user.displayName.isNotEmpty ? user.displayName : 'User',
-                                  style: textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, size: 18),
-                                tooltip: 'Edit Profile',
-                                onPressed: () => _openEditProfileSheet(scaffoldContext),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer.withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundColor: colorScheme.primaryContainer,
                             child: Text(
-                              user.formattedUsername,
-                              style: textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary,
+                              user.displayName.isNotEmpty
+                                  ? user.displayName[0].toUpperCase()
+                                  : 'U',
+                              style: textTheme.headlineSmall?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user.email,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          Text(
-                            'Member since ${DateFormat.yMMMd().format(user.createdAt)}',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.outline,
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: InkWell(
+                              onTap: () => _openEditProfileSheet(scaffoldContext),
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: colorScheme.primary,
+                                child: const Icon(Icons.edit, size: 12, color: Colors.white),
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: AppSizes.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    user.displayName.isNotEmpty ? user.displayName : 'User',
+                                    style: textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined, size: 18),
+                                  tooltip: 'Edit Profile',
+                                  onPressed: () => _openEditProfileSheet(scaffoldContext),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer.withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                user.formattedUsername,
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              user.email,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              'Member since ${DateFormat.yMMMd().format(user.createdAt)}',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Friends & Direct Chat Hub Title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                
-                TextButton.icon(
-                  onPressed: () => _openFriendRequestsSheet(scaffoldContext),
-                  icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
-                  label: const Text('Add Friends'),
-                  
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSizes.xs),
-
-            // Friends List with Direct Chat Buttons
-            friendsAsync.when(
-              data: (friends) {
-                if (friends.isEmpty) {
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSizes.lg),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.people_outline, size: 40, color: Colors.white54),
-                          const SizedBox(height: AppSizes.sm),
-                          const Text(
-                            'No Friends',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                return Column(
-                  children: friends.map((friend) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: AppSizes.sm),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: colorScheme.secondaryContainer,
-                          child: Text(
-                            friend.displayName.isNotEmpty
-                                ? friend.displayName[0].toUpperCase()
-                                : 'F',
-                            style: TextStyle(
-                              color: colorScheme.onSecondaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          friend.displayName,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          friend.formattedUsername,
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        trailing: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 130),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.pie_chart_outline, size: 20, color: Colors.amberAccent),
-                                tooltip: 'Split Bill',
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: scaffoldContext,
-                                    isScrollControlled: true,
-                                    builder: (ctx) => AddSplitBillSheet(
-                                      members: [friend],
-                                    ),
-                                  );
-                                },
-                              ),
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                ),
-                                onPressed: () => _openDirectChatSheet(scaffoldContext, friend),
-                                icon: const Icon(Icons.chat_bubble_outline, size: 14),
-                                label: const Text('Chat'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => Text('Error loading friends: $err'),
-            ),
-          ],
+            ],
           ),
         ),
       ),
@@ -299,14 +171,224 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-/// Settings Bottom Sheet displaying Profile Edit & Log Out action.
+/// Settings Bottom Sheet with functional Profile, Currency, Theme Presets, App Lock & Security, and Direct Log Out.
 class _SettingsSheet extends ConsumerWidget {
   const _SettingsSheet();
+
+  void _openCurrencyPicker(BuildContext context, WidgetRef ref) {
+    final user = ref.read(currentUserProvider);
+    final currentCurrency = user?.currency ?? 'INR';
+
+    final currencies = [
+      {'code': 'INR', 'symbol': '₹', 'name': 'Indian Rupee'},
+      {'code': 'USD', 'symbol': '\$', 'name': 'US Dollar'},
+      {'code': 'EUR', 'symbol': '€', 'name': 'Euro'},
+      {'code': 'GBP', 'symbol': '£', 'name': 'British Pound'},
+      {'code': 'JPY', 'symbol': '¥', 'name': 'Japanese Yen'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(AppSizes.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Select Currency', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: AppSizes.md),
+            for (final c in currencies)
+              ListTile(
+                leading: Text(c['symbol']!, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                title: Text(c['name']!),
+                subtitle: Text(c['code']!),
+                trailing: currentCurrency == c['code'] ? const Icon(Icons.check_circle, color: Colors.blue) : null,
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  if (user != null) {
+                    await ref.read(authControllerProvider.notifier).updateProfile(
+                          uid: user.uid,
+                          displayName: user.displayName,
+                          username: user.username,
+                          currency: c['code'],
+                        );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Currency updated to ${c['code']} (${c['symbol']})'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openThemePresetPicker(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Consumer(
+        builder: (context, ref, _) {
+          final currentPreset = ref.watch(themePresetProvider);
+          final currentMode = ref.watch(themeModeProvider);
+
+          return Padding(
+            padding: const EdgeInsets.all(AppSizes.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Theme', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const SizedBox(height: AppSizes.md),
+
+                // 1. Light / Dark / System Mode Control
+                Text('Mode', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilterChipButton(
+                        label: 'Light',
+                        icon: Icons.light_mode_outlined,
+                        isSelected: currentMode == ThemeMode.light,
+                        onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilterChipButton(
+                        label: 'Dark',
+                        icon: Icons.dark_mode_outlined,
+                        isSelected: currentMode == ThemeMode.dark,
+                        onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilterChipButton(
+                        label: 'System',
+                        icon: Icons.brightness_auto_outlined,
+                        isSelected: currentMode == ThemeMode.system,
+                        onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const Divider(height: 28),
+
+                // 2. Dual-Color Theme Combinations
+                Text('Color Combinations', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+
+                for (final preset in AppThemePreset.values)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 44,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        gradient: preset.primaryGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.white24, width: 1),
+                      ),
+                    ),
+                    title: Text(preset.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    trailing: currentPreset == preset ? const Icon(Icons.check_circle, color: Colors.blue) : null,
+                    onTap: () {
+                      ref.read(themePresetProvider.notifier).setPreset(preset);
+                    },
+                  ),
+                const SizedBox(height: AppSizes.sm),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _openSecuritySheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Consumer(
+        builder: (context, ref, _) {
+          final isAppLock = ref.watch(isAppLockEnabledProvider);
+
+          return Padding(
+            padding: const EdgeInsets.all(AppSizes.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('App Lock', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: AppSizes.xs),
+                Text('Protect Finnect using your phone PIN, pattern, password, or biometrics', style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(height: AppSizes.md),
+                SwitchListTile(
+                  title: const Text('Require Phone Lock Screen'),
+                  subtitle: const Text('Unlock app using phone PIN, pattern, or biometrics'),
+                  value: isAppLock,
+                  onChanged: (val) async {
+                    if (val) {
+                      final verified = await AppLockService.instance.authenticateWithDeviceLock(
+                        reason: 'Verify phone lock credentials to enable App Lock',
+                      );
+                      if (verified) {
+                        await ref.read(isAppLockEnabledProvider.notifier).setEnabled(true);
+                        ref.read(isAppLockedProvider.notifier).lock();
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Phone lock verification required to enable App Lock.'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
+                    } else {
+                      await ref.read(isAppLockEnabledProvider.notifier).setEnabled(false);
+                      ref.read(isAppLockedProvider.notifier).unlock();
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSizes.md),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final theme = Theme.of(context);
+    final currentPreset = ref.watch(themePresetProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -341,13 +423,10 @@ class _SettingsSheet extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.pop(context);
-              // Use a post-frame callback so the settings sheet is fully popped
-              // before we push the edit sheet on top
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                showModalBottomSheet(
+                showAppModalBottomSheet(
                   context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
+                  ref: ref,
                   builder: (ctx) => const _EditProfileSheet(),
                 );
               });
@@ -356,17 +435,23 @@ class _SettingsSheet extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.currency_exchange),
             title: const Text('Currency'),
-            trailing: Text('${user?.currency ?? 'INR'} ₹'),
+            subtitle: Text('Current: ${user?.currency ?? 'INR'}'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _openCurrencyPicker(context, ref),
           ),
-          const ListTile(
-            leading: Icon(Icons.dark_mode_outlined),
-            title: Text('Theme'),
-            trailing: Text('System'),
+          ListTile(
+            leading: const Icon(Icons.dark_mode_outlined),
+            title: const Text('Theme'),
+            subtitle: Text(currentPreset.displayName),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _openThemePresetPicker(context, ref),
           ),
-          const ListTile(
-            leading: Icon(Icons.lock_outline),
-            title: Text('App Lock & Security'),
-            trailing: Icon(Icons.chevron_right),
+          ListTile(
+            leading: const Icon(Icons.lock_outline),
+            title: const Text('App Lock & Security'),
+            subtitle: const Text('PIN & Biometric authentication'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _openSecuritySheet(context, ref),
           ),
           const Divider(height: 24),
           ListTile(
@@ -380,7 +465,7 @@ class _SettingsSheet extends ConsumerWidget {
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Log Out'),
-                  content: const Text('Are you sure you want to log out of Finnect?'),
+                  content: const Text('Are you sure you want to log?'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
@@ -396,11 +481,9 @@ class _SettingsSheet extends ConsumerWidget {
               );
 
               if (confirm == true && context.mounted) {
-                Navigator.pop(context);
-                await ref.read(authControllerProvider.notifier).signOut();
-                if (context.mounted) {
-                  context.go(RouteNames.login);
-                }
+                // Instantly navigate straight to login page without home page flash!
+                context.go(RouteNames.login);
+                ref.read(authControllerProvider.notifier).signOut();
               }
             },
           ),
@@ -420,7 +503,7 @@ class _SettingsSheet extends ConsumerWidget {
                 builder: (ctx) => AlertDialog(
                   title: const Text('Delete Account'),
                   content: const Text(
-                    'Are you sure you want to permanently delete your account? All your transaction history, groups, and profile data will be erased.',
+                    'Are you sure you want to permanently delete your account? All your transaction history and profile data will be erased.',
                   ),
                   actions: [
                     TextButton(
@@ -437,17 +520,8 @@ class _SettingsSheet extends ConsumerWidget {
               );
 
               if (confirm == true && context.mounted) {
-                Navigator.pop(context);
+                context.go(RouteNames.login);
                 await ref.read(authControllerProvider.notifier).deleteAccount();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Your account has been deleted.'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                  context.go(RouteNames.login);
-                }
               }
             },
           ),
@@ -518,7 +592,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Profile updated successfully! ✨'),
+            content: Text('Profile updated successfully'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.green,
           ),
@@ -591,7 +665,6 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
             decoration: const InputDecoration(
               labelText: 'Username',
               prefixIcon: Icon(Icons.alternate_email),
-              hintText: 'e.g. alex99',
             ),
           ),
           const SizedBox(height: AppSizes.lg),
@@ -609,146 +682,6 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                 : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Direct Message Sheet with a friend
-class _DirectChatSheet extends ConsumerStatefulWidget {
-  final UserFriendInfo friend;
-
-  const _DirectChatSheet({required this.friend});
-
-  @override
-  ConsumerState<_DirectChatSheet> createState() => _DirectChatSheetState();
-}
-
-class _DirectChatSheetState extends ConsumerState<_DirectChatSheet> {
-  final _msgController = TextEditingController();
-  final List<String> _messages = [
-    'Hey! Sent you my share for the Goa trip 🏖️',
-    'Got it, thanks! 👍',
-  ];
-
-  @override
-  void dispose() {
-    _msgController.dispose();
-    super.dispose();
-  }
-
-  void _sendMessage() {
-    final text = _msgController.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _messages.add(text);
-      _msgController.clear();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final mediaQuery = MediaQuery.of(context);
-
-    return Container(
-      height: mediaQuery.size.height * 0.75,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
-      ),
-      padding: EdgeInsets.only(
-        left: AppSizes.md,
-        right: AppSizes.md,
-        top: AppSizes.md,
-        bottom: mediaQuery.viewInsets.bottom + AppSizes.md,
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                child: Text(
-                  widget.friend.displayName.isNotEmpty
-                      ? widget.friend.displayName[0].toUpperCase()
-                      : 'F',
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSizes.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.friend.displayName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      widget.friend.formattedUsername,
-                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          const Divider(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final isMe = index % 2 != 0;
-                return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isMe
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      _messages[index],
-                      style: TextStyle(
-                        color: isMe ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _msgController,
-                  decoration: const InputDecoration(
-                    hintText: 'Type a message...',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton.filled(
-                onPressed: _sendMessage,
-                icon: const Icon(Icons.send, size: 18),
-              ),
-            ],
           ),
         ],
       ),

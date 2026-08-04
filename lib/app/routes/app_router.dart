@@ -15,8 +15,6 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/goals/presentation/screens/goals_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
-import '../../features/social/presentation/screens/group_detail_screen.dart';
-import '../../features/social/presentation/screens/social_screen.dart';
 import '../../features/transactions/presentation/screens/transactions_screen.dart';
 import 'route_names.dart';
 
@@ -100,12 +98,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.goals,
         builder: (context, state) => const GoalsScreen(),
       ),
-      GoRoute(
-        path: RouteNames.transactions,
-        builder: (context, state) => const TransactionsScreen(),
-      ),
 
-      // Bottom-nav shell with 4 main branches: Home (0), Friends (1), Analytics (2), Profile (3)
+      // Bottom-nav shell with 4 main branches: Home (0), Transactions (1), Analytics (2), Profile (3)
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppScaffoldShell(navigationShell: navigationShell),
@@ -118,20 +112,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ]),
 
-          // Branch 1: Social & Friends
+          // Branch 1: Transactions
           StatefulShellBranch(routes: [
             GoRoute(
-              path: RouteNames.social,
-              builder: (context, state) => const SocialScreen(),
-              routes: [
-                GoRoute(
-                  path: 'group/:id',
-                  builder: (context, state) {
-                    final groupId = state.pathParameters['id'] ?? '';
-                    return GroupDetailScreen(groupId: groupId);
-                  },
-                ),
-              ],
+              path: RouteNames.transactions,
+              builder: (context, state) => const TransactionsScreen(),
             ),
           ]),
 

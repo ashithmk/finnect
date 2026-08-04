@@ -8,6 +8,7 @@ import '../../../../app/constants/app_strings.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../app/utils/currency_formatter.dart';
 import '../../../../app/utils/extensions.dart';
+import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/aero_glass_container.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../transactions/data/transaction_providers.dart';
@@ -21,10 +22,10 @@ import '../widgets/reminder_sheet.dart';
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  void _openSetReminderSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _openSetReminderSheet(BuildContext context, WidgetRef ref) {
+    showAppModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      ref: ref,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
@@ -47,7 +48,7 @@ class DashboardScreen extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.notifications_outlined),
               tooltip: 'Set Expense Reminder',
-              onPressed: () => _openSetReminderSheet(context),
+              onPressed: () => _openSetReminderSheet(context, ref),
             ),
             const SizedBox(width: AppSizes.xs),
           ],
@@ -88,7 +89,7 @@ class DashboardScreen extends ConsumerWidget {
 /// Finnect 3D Total Balance card featuring signature blue-indigo-violet gradient,
 /// Top-Left Add Balance button, and Bottom-Right Total Savings display.
 /// Tapping the card opens the detailed BalanceDetailsSheet ("To Get" & "To Give").
-class _TotalBalanceCard extends StatelessWidget {
+class _TotalBalanceCard extends ConsumerWidget {
   final CurrencyFormatter currency;
   final double totalBalance;
   final double savings;
@@ -99,10 +100,10 @@ class _TotalBalanceCard extends StatelessWidget {
     required this.savings,
   });
 
-  void _openAddBalance(BuildContext context) {
-    showModalBottomSheet(
+  void _openAddBalance(BuildContext context, WidgetRef ref) {
+    showAppModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      ref: ref,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
@@ -114,10 +115,10 @@ class _TotalBalanceCard extends StatelessWidget {
     );
   }
 
-  void _openBalanceDetails(BuildContext context) {
-    showModalBottomSheet(
+  void _openBalanceDetails(BuildContext context, WidgetRef ref) {
+    showAppModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      ref: ref,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
@@ -127,19 +128,19 @@ class _TotalBalanceCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final safeBalance = (totalBalance.isNaN || totalBalance < 0) ? 0.0 : totalBalance;
     final safeSavings = (savings.isNaN || savings < 0) ? 0.0 : savings;
 
     return LiquidGlassContainer(
-      onTap: () => _openBalanceDetails(context),
+      onTap: () => _openBalanceDetails(context, ref),
       borderRadius: BorderRadius.circular(24.0),
       padding: const EdgeInsets.all(AppSizes.lg),
       gradient: const LinearGradient(
         colors: [
-          Color(0xFF031130), // Deep Midnight Navy
-          Color(0xFF185DF1), // Electric Sapphire Blue
-          Color(0xFF0A2B7A), // Deep Blue Accent
+          Color(0xFF181F30), // WorkOS Specular Dark Glass Top
+          Color(0xFF0F1420), // Deep Dark Glass Mid
+          Color(0xFF090A10), // Obsidian Base Bottom
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
@@ -152,16 +153,26 @@ class _TotalBalanceCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               InkWell(
-                onTap: () => _openAddBalance(context),
+                onTap: () => _openAddBalance(context, ref),
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.45),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF6967FB),
+                        Color(0xFF504DE4),
+                      ],
                     ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6967FB).withValues(alpha: 0.38),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
                   child: Text(
                     'Add Balance',
@@ -311,7 +322,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _RecentTransactionsList extends StatelessWidget {
+class _RecentTransactionsList extends ConsumerWidget {
   final List<TransactionModel> transactions;
   final CurrencyFormatter currency;
 
@@ -344,7 +355,7 @@ class _RecentTransactionsList extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (transactions.isEmpty) {
       return Card(
         child: Padding(
@@ -362,19 +373,13 @@ class _RecentTransactionsList extends StatelessWidget {
                 style: context.textStyles.titleMedium,
               ),
               const SizedBox(height: 4),
-              Text(
-                'Tap Add Balance above or the + button below to log your entries.',
-                textAlign: TextAlign.center,
-                style: context.textStyles.bodySmall?.copyWith(
-                  color: context.colors.onSurfaceVariant,
-                ),
-              ),
+             
               const SizedBox(height: AppSizes.md),
               ElevatedButton.icon(
                 onPressed: () {
-                  showModalBottomSheet(
+                  showAppModalBottomSheet(
                     context: context,
-                    isScrollControlled: true,
+                    ref: ref,
                     builder: (ctx) => const AddTransactionSheet(
                       initialType: TransactionType.expense,
                       lockType: true,

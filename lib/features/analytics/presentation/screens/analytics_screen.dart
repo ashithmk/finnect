@@ -7,6 +7,7 @@ import '../../../../app/constants/app_strings.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../app/utils/currency_formatter.dart';
 import '../../../../app/utils/extensions.dart';
+import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../../core/widgets/loaders.dart';
 import '../../../transactions/data/transaction_providers.dart';
@@ -174,9 +175,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                         'Tap the + button below to log your expenses and unlock spending insights for this period!',
                     actionLabel: 'Add Expense',
                     onAction: () {
-                      showModalBottomSheet(
+                      showAppModalBottomSheet(
                         context: context,
-                        isScrollControlled: true,
+                        ref: ref,
                         builder: (ctx) => const AddTransactionSheet(
                           initialType: TransactionType.expense,
                           lockType: true,
@@ -199,9 +200,11 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                     final sortedCategories = categorySums.entries.toList()
                       ..sort((a, b) => b.value.compareTo(a.value));
 
-                    final topCategory = sortedCategories.first;
-                    final topPercentage = totalExpense > 0
-                        ? (topCategory.value / totalExpense * 100).toStringAsFixed(1)
+                    final topCategory = sortedCategories.isEmpty ? null : sortedCategories.first;
+                    final topCategoryName = topCategory?.key ?? 'None';
+                    final topCategoryAmount = topCategory?.value ?? 0.0;
+                    final topPercentage = (totalExpense > 0 && topCategoryAmount > 0)
+                        ? (topCategoryAmount / totalExpense * 100).toStringAsFixed(1)
                         : '0.0';
                     final avgExpense = expenses.isNotEmpty ? totalExpense / expenses.length : 0.0;
 
@@ -210,8 +213,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                       children: [
                         // Behavior Highlight Card
                         _SpendingBehaviorCard(
-                          topCategoryName: topCategory.key,
-                          topCategoryAmount: topCategory.value,
+                          topCategoryName: topCategoryName,
+                          topCategoryAmount: topCategoryAmount,
                           topPercentage: topPercentage,
                           periodLabel: _getPeriodLabel(_selectedPeriod),
                           currency: currency,
