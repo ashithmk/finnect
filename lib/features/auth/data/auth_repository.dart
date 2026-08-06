@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/user_model.dart';
 
 /// Contract for authentication and user database management.
@@ -590,7 +592,13 @@ class LocalMockAuthRepository implements AuthRepository {
       }
     }
 
-    if (foundUser == null) {
+    if (foundUser != null) {
+      final persisted = await _loadUserFromPrefs(foundUser.uid);
+      if (persisted != null) {
+        foundUser = persisted;
+        sharedMockUsersDb[foundUser.uid] = persisted;
+      }
+    } else {
       // Auto register for seamless test login
       final uid = 'user_${DateTime.now().millisecondsSinceEpoch}';
       foundUser = AppUser(
@@ -601,6 +609,8 @@ class LocalMockAuthRepository implements AuthRepository {
         createdAt: DateTime.now(),
         currency: 'INR',
       );
+      sharedMockUsersDb[uid] = foundUser;
+      await _saveUserToPrefs(foundUser);
     }
 
     _currentUser = foundUser;
@@ -646,8 +656,36 @@ class LocalMockAuthRepository implements AuthRepository {
     }
   }
 
+  Future<void> _saveUserToPrefs(AppUser user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('mock_user_profile_${user.uid}', jsonEncode(user.toMap()));
+    } catch (e) {
+      debugPrint('Warning: Could not save user to prefs: $e');
+    }
+  }
+
+  Future<AppUser?> _loadUserFromPrefs(String uid) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final str = prefs.getString('mock_user_profile_$uid');
+      if (str != null && str.isNotEmpty) {
+        final map = jsonDecode(str) as Map<String, dynamic>;
+        return AppUser.fromMap(map);
+      }
+    } catch (e) {
+      debugPrint('Warning: Could not load user from prefs: $e');
+    }
+    return null;
+  }
+
   @override
   Future<AppUser?> getUserProfile(String uid) async {
+    final fromPrefs = await _loadUserFromPrefs(uid);
+    if (fromPrefs != null) {
+      sharedMockUsersDb[uid] = fromPrefs;
+      return fromPrefs;
+    }
     return sharedMockUsersDb[uid];
   }
 
@@ -670,7 +708,7 @@ class LocalMockAuthRepository implements AuthRepository {
       );
     }
 
-    final existing = sharedMockUsersDb[uid] ?? _currentUser;
+    final existing = await getUserProfile(uid) ?? sharedMockUsersDb[uid] ?? _currentUser;
     final updated = AppUser(
       uid: uid,
       email: existing?.email ?? '',
@@ -684,6 +722,7 @@ class LocalMockAuthRepository implements AuthRepository {
     );
 
     sharedMockUsersDb[uid] = updated;
+    await _saveUserToPrefs(updated);
     _currentUser = updated;
     _authController.add(updated);
     return updated;

@@ -222,6 +222,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 16),
                                 child: _DailySummaryExpandableCard(
+                                  key: ValueKey('history_$groupKey'),
                                   groupKey: groupKey,
                                   dayTotal: dayTotal,
                                   items: groupItems,
@@ -254,6 +255,7 @@ class _DailySummaryExpandableCard extends StatefulWidget {
   final CurrencyFormatter currency;
 
   const _DailySummaryExpandableCard({
+    super.key,
     required this.groupKey,
     required this.dayTotal,
     required this.items,
@@ -273,11 +275,34 @@ class _DailySummaryExpandableCardState
   @override
   void initState() {
     super.initState();
-    _isExpanded = widget.groupKey.startsWith('TODAY');
+    _isExpanded = false;
   }
 
   @override
   Widget build(BuildContext context) {
+    double dayIncome = 0.0;
+    double dayExpense = 0.0;
+    for (final item in widget.items) {
+      if (item.type == TransactionType.income) {
+        dayIncome += item.amount;
+      } else {
+        dayExpense += item.amount;
+      }
+    }
+
+    final String? subtitleText =
+        dayIncome > 0 ? '+${widget.currency.format(dayIncome)}' : null;
+
+    final rightSideAmountStr = dayExpense > 0
+        ? '-${widget.currency.format(dayExpense)}'
+        : (dayIncome > 0
+            ? '+${widget.currency.format(dayIncome)}'
+            : widget.currency.format(0.0));
+
+    final rightSideColor = dayExpense > 0
+        ? AppColors.textPrimary
+        : (dayIncome > 0 ? AppColors.income : AppColors.textSecondary);
+
     return FinnectGlassCard(
       padding: EdgeInsets.zero,
       borderRadius: BorderRadius.circular(24),
@@ -286,48 +311,67 @@ class _DailySummaryExpandableCardState
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             borderRadius: BorderRadius.circular(24),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-              decoration: BoxDecoration(
-                border: _isExpanded
-                    ? Border(
-                        bottom: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          width: 1,
-                        ),
-                      )
-                    : null,
-              ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 children: [
-                  Icon(
-                    _isExpanded
-                        ? Icons.expand_more_rounded
-                        : Icons.chevron_right_rounded,
-                    size: 22,
-                    color: AppColors.textPrimary,
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.glassSubtleFill,
+                    ),
+                    child: const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 16,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 14),
                   Expanded(
-                    child: Text(
-                      widget.groupKey,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.6,
-                        color: AppColors.textPrimary,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.groupKey,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (subtitleText != null)
+                          Text(
+                            subtitleText,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.income,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  Text(
-                    '${widget.dayTotal < 0 ? "-" : "+"}${widget.currency.format(widget.dayTotal.abs())}',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: widget.dayTotal < 0
-                          ? AppColors.textPrimary
-                          : AppColors.income,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        rightSideAmountStr,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: rightSideColor,
+                        ),
+                      ),
+                      Icon(
+                        _isExpanded
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
                   ),
                 ],
               ),

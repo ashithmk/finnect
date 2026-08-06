@@ -49,7 +49,65 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
     if (picked != null && mounted) {
       setState(() => _avatarFile = File(picked.path));
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        await ref.read(authControllerProvider.notifier).updateProfile(
+              uid: user.uid,
+              displayName: user.displayName,
+              username: user.username,
+              photoUrl: picked.path,
+            );
+      }
     }
+  }
+
+  Widget _buildAvatarImage(AppUser user) {
+    if (_avatarFile != null) {
+      return Image.file(
+        _avatarFile!,
+        fit: BoxFit.cover,
+        width: 96,
+        height: 96,
+      );
+    }
+    final photoUrl = user.photoUrl;
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+        return Image.network(
+          photoUrl,
+          fit: BoxFit.cover,
+          width: 96,
+          height: 96,
+          errorBuilder: (ctx, err, stack) => _buildInitialAvatar(user),
+        );
+      }
+      final file = File(photoUrl);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          width: 96,
+          height: 96,
+          errorBuilder: (ctx, err, stack) => _buildInitialAvatar(user),
+        );
+      }
+    }
+    return _buildInitialAvatar(user);
+  }
+
+  Widget _buildInitialAvatar(AppUser user) {
+    return Center(
+      child: Text(
+        user.displayName.isNotEmpty
+            ? user.displayName[0].toUpperCase()
+            : 'U',
+        style: GoogleFonts.playfairDisplay(
+          fontSize: 38,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+      ),
+    );
   }
 
   // ─── Build ────────────────────────────────────────────────────────────────
@@ -143,25 +201,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ],
                         ),
                         child: ClipOval(
-                          child: _avatarFile != null
-                              ? Image.file(
-                                  _avatarFile!,
-                                  fit: BoxFit.cover,
-                                  width: 96,
-                                  height: 96,
-                                )
-                              : Center(
-                                  child: Text(
-                                    user.displayName.isNotEmpty
-                                        ? user.displayName[0].toUpperCase()
-                                        : 'U',
-                                    style: GoogleFonts.playfairDisplay(
-                                      fontSize: 38,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
+                          child: _buildAvatarImage(user),
                         ),
                       ),
                       // Camera badge
@@ -425,20 +465,20 @@ class _FullSettingsSheet extends ConsumerWidget {
             const Divider(height: 1, indent: 72, endIndent: 24),
             _SettingsTile(
               icon: Icons.currency_exchange_rounded,
-              title: 'Currency & Format',
+              title: 'Currency ',
               subtitle: user?.currency ?? 'INR',
               onTap: () => _openCurrency(context, ref),
             ),
             const Divider(height: 1, indent: 72, endIndent: 24),
             _SettingsTile(
               icon: Icons.lock_outline_rounded,
-              title: 'App Lock & Security',
+              title: 'App Lock ',
               onTap: () => _openAppLock(context, ref),
             ),
             const Divider(height: 1, indent: 72, endIndent: 24),
             _SettingsTile(
               icon: Icons.tune_rounded,
-              title: 'Settings & Preferences',
+              title: 'Preferences',
               onTap: () => _openPreferences(context, ref),
             ),
             const Divider(height: 1, indent: 72, endIndent: 24),
@@ -468,10 +508,16 @@ class _FullSettingsSheet extends ConsumerWidget {
                   ),
                 );
                 if (confirm == true && context.mounted) {
-                  Navigator.pop(context); // close the settings sheet
+                  Navigator.of(context, rootNavigator: true).pop(); // dismiss sheet
                   await ref
                       .read(authControllerProvider.notifier)
-                      .signOut(); // sign out first; router will redirect automatically
+                      .signOut();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    final rootContext = rootNavigatorKey.currentContext;
+                    if (rootContext != null && rootContext.mounted) {
+                      GoRouter.of(rootContext).go(RouteNames.login);
+                    }
+                  });
                 }
               },
             ),

@@ -110,7 +110,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Join ${AppStrings.appName} ✨',
+                        AppStrings.appName,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -118,13 +118,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        'Choose a unique @username for your account handle',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white70,
-                        ),
-                      ),
                       const SizedBox(height: AppSizes.xl),
 
                       // Glassmorphic Capsule Form Container

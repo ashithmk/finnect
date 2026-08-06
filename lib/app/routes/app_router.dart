@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,7 +31,11 @@ class GoRouterRefreshStream extends ChangeNotifier {
         final isLoggedIn = user != null;
         if (_lastIsLoggedIn != isLoggedIn) {
           _lastIsLoggedIn = isLoggedIn;
-          notifyListeners();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (hasListeners) {
+              notifyListeners();
+            }
+          });
         }
       },
     );
@@ -62,9 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final user = ref.read(currentUserProvider);
-      final isLoggedIn = user != null ||
-          Firebase.apps.isEmpty ||
-          FirebaseAuth.instance.currentUser != null;
+      final isLoggedIn = user != null;
 
       final isAuthRoute = matchedLoc == RouteNames.login ||
           matchedLoc == RouteNames.register;

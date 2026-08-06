@@ -456,6 +456,7 @@ class _RecentTransactionsList extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: _RecentDayCard(
+              key: ValueKey('recent_$groupKey'),
               groupKey: groupKey,
               items: grouped[groupKey] ?? [],
               currency: currency,
@@ -472,6 +473,7 @@ class _RecentDayCard extends StatefulWidget {
   final CurrencyFormatter currency;
 
   const _RecentDayCard({
+    super.key,
     required this.groupKey,
     required this.items,
     required this.currency,
@@ -487,7 +489,7 @@ class _RecentDayCardState extends State<_RecentDayCard> {
   @override
   void initState() {
     super.initState();
-    _isExpanded = widget.groupKey == 'Today';
+    _isExpanded = false;
   }
 
   @override

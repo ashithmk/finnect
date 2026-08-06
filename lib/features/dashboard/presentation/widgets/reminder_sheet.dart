@@ -1,11 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../app/constants/app_sizes.dart';
-import '../../../../app/utils/extensions.dart';
+
+import '../../../../app/constants/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
 
-/// Modal sheet allowing users to set custom daily reminder time and preferences.
-/// Preserves user settings across app sessions without auto-resetting.
+/// Redesigned Daily Reminder Sheet strictly matching `finnect_design/reminder/code.html` and `DESIGN.md`.
 class SetReminderSheet extends StatefulWidget {
   final TimeOfDay? initialTime;
   const SetReminderSheet({super.key, this.initialTime});
@@ -18,7 +19,7 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
   bool _enabled = true;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 20, minute: 0); // Default 8:00 PM
   final TextEditingController _noteController =
-      TextEditingController(text: "Don't forget to track your daily expenses!");
+      TextEditingController(text: "Don't forget to track your daily expenses");
   bool _loading = true;
 
   @override
@@ -31,7 +32,6 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
 
-    // Load saved settings so time is NEVER reset automatically
     final savedEnabled = prefs.getBool('reminder_enabled') ?? true;
     final savedHour = prefs.getInt('reminder_hour') ?? 20;
     final savedMinute = prefs.getInt('reminder_minute') ?? 0;
@@ -58,6 +58,19 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
       context: context,
       initialTime: _selectedTime,
       helpText: 'SELECT DAILY REMINDER TIME',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF4648D4),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF191C1D),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && mounted) {
       setState(() {
@@ -84,11 +97,11 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
       if (_enabled) {
         final message = _noteController.text.trim().isNotEmpty
             ? _noteController.text.trim()
-            : "Don't forget to track your daily expenses!";
+            : "Don't forget to track your daily expenses";
 
         await NotificationService.instance.scheduleDailyReminder(
           time: _selectedTime,
-          title: 'Finnect  Reminder',
+          title: 'Finnect Reminder',
           body: message,
         );
       } else {
@@ -108,7 +121,7 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
                 : 'Reminder notifications disabled.',
           ),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: _enabled ? Colors.teal : Colors.grey[700],
+          backgroundColor: _enabled ? const Color(0xFF009668) : Colors.grey[700],
         ),
       );
     }
@@ -116,168 +129,373 @@ class _SetReminderSheetState extends State<SetReminderSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final formattedTime = _selectedTime.format(context);
     final maxSheetHeight = MediaQuery.of(context).size.height * 0.88;
 
-    return SafeArea(
-      child: Container(
-        constraints: BoxConstraints(maxHeight: maxSheetHeight),
-        padding: EdgeInsets.only(
-          left: AppSizes.lg,
-          right: AppSizes.lg,
-          top: AppSizes.lg,
-          bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.lg,
-        ),
-        child: _loading
-            ? const SizedBox(
-                height: 200,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            : SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.alarm_on_rounded, color: theme.colorScheme.primary, size: 26),
-                            const SizedBox(width: AppSizes.sm),
-                            Text(
-                              'Daily Reminder',
-                              style: context.textStyles.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
-                    
+    return Container(
+      constraints: BoxConstraints(maxHeight: maxSheetHeight),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drag Handle
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Center(
+                child: Container(
+                  width: 48,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCFC4C5),
+                    borderRadius: BorderRadius.circular(9999),
+                  ),
+                ),
+              ),
+            ),
 
-                    // Enable Toggle Card
-                    Card(
-                      child: SwitchListTile(
-                        title: const Text('Daily Notification', style: TextStyle(fontWeight: FontWeight.bold)),
-                        value: _enabled,
-                        onChanged: (val) {
-                          setState(() {
-                            _enabled = val;
-                          });
-                        },
+            // Header Row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.alarm_on_rounded,
+                        size: 22,
+                        color: Color(0xFF4C4546),
                       ),
-                    ),
-                    const SizedBox(height: AppSizes.md),
-
-                    // Giant Interactive Time Display Card
-                    Card(
-                      elevation: 3,
-                      color: _enabled
-                          ? theme.colorScheme.primaryContainer
-                          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-                        side: BorderSide(
-                          color: _enabled ? theme.colorScheme.primary : Colors.transparent,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: InkWell(
-                        onTap: _enabled ? _pickTime : null,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                          child: Center(
-                            child: Text(
-                              formattedTime,
-                              style: context.textStyles.displayMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: _enabled
-                                    ? theme.colorScheme.onPrimaryContainer
-                                    : theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.md),
-
-                    // Quick Preset Time Options
-                    if (_enabled) ...[
+                      const SizedBox(width: 10),
                       Text(
-                        'Quick Presets:',
-                        style: context.textStyles.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
+                        'Daily Reminder',
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF191C1D),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
+                    ],
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    borderRadius: BorderRadius.circular(9999),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.glassSubtleFill,
+                        border: Border.all(color: Colors.white, width: 1),
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: Color(0xFF191C1D),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Sheet Body
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.only(
+                        left: 24,
+                        right: 24,
+                        top: 8,
+                        bottom: MediaQuery.of(context).viewInsets.bottom + 96,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                         
-                          ChoiceChip(
-                            label: const Text('8:00 PM '),
-                            selected: _selectedTime.hour == 20 && _selectedTime.minute == 0,
-                            onSelected: (_) => _selectPresetTime(20, 0),
+                          // ── Daily Notification Toggle ──
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.50),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.70),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Daily Notification',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF191C1D),
+                                      ),
+                                    ),
+                                    Switch.adaptive(
+                                      value: _enabled,
+                                      activeTrackColor: Colors.black,
+                                      activeThumbColor: Colors.white,
+                                      onChanged: (val) {
+                                        setState(() => _enabled = val);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
-                          ChoiceChip(
-                            label: const Text('10:00 PM '),
-                            selected: _selectedTime.hour == 22 && _selectedTime.minute == 0,
-                            onSelected: (_) => _selectPresetTime(22, 0),
+                          const SizedBox(height: 20),
+
+                          // ── Hero Time Display Card ──
+                          Opacity(
+                            opacity: _enabled ? 1.0 : 0.45,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _enabled ? _pickTime : null,
+                                borderRadius: BorderRadius.circular(24),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE1E0FF).withValues(alpha: 0.35),
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(
+                                          color: const Color(0xFFC0C1FF).withValues(alpha: 0.60),
+                                          width: 1,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.06),
+                                            blurRadius: 25,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          formattedTime,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 38,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: -0.5,
+                                            color: const Color(0xFF07006C),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // ── Quick Presets ──
+                          if (_enabled) ...[
+                            Text(
+                              'QUICK PRESETS:',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.6,
+                                color: const Color(0xFF4C4546),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                _buildPresetChip('8:00 AM', 8, 0),
+                                const SizedBox(width: 10),
+                                _buildPresetChip('8:00 PM', 20, 0),
+                                const SizedBox(width: 10),
+                                _buildPresetChip('10:00 PM', 22, 0),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+
+                          // ── Reminder Message Input ──
+                          Text(
+                            'REMINDER MESSAGE',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.6,
+                              color: const Color(0xFF4C4546),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.50),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.70),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 2),
+                                      child: Icon(
+                                        Icons.edit_outlined,
+                                        size: 20,
+                                        color: Color(0xFF4C4546),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _noteController,
+                                        enabled: _enabled,
+                                        maxLines: 2,
+                                        minLines: 1,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          color: const Color(0xFF191C1D),
+                                        ),
+                                        decoration: InputDecoration(
+                                          hintText: "Don't forget to track your daily expenses",
+                                          hintStyle: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color: const Color(0xFF4C4546).withValues(alpha: 0.50),
+                                          ),
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.zero,
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppSizes.md),
-                    ],
-
-                    // Reminder Note
-                    TextField(
-                      controller: _noteController,
-                      enabled: _enabled,
-                      decoration: InputDecoration(
-                        labelText: 'Reminder Message',
-                        
-                        prefixIcon: const Icon(Icons.edit_note),
-                        filled: true,
-                        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                        ),
-                      ),
                     ),
-                    const SizedBox(height: AppSizes.md),
+            ),
 
-                   
-                   
-
-                    // Save Button
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      onPressed: _saveReminderSettings,
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: Text(
-                        _enabled ? 'Save ' : 'Turn Off Reminders',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+            // ── Sticky Save Button ──
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                height: 54,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF000000),
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: Colors.black.withValues(alpha: 0.25),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ],
+                  ),
+                  onPressed: _saveReminderSettings,
+                  icon: const Icon(Icons.check_circle_rounded, size: 20),
+                  label: Text(
+                    _enabled ? 'Save Reminder' : 'Turn Off Reminders',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetChip(String label, int hour, int minute) {
+    final bool selected = _selectedTime.hour == hour && _selectedTime.minute == minute;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => _selectPresetTime(hour, minute),
+        borderRadius: BorderRadius.circular(9999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected
+                ? const Color(0xFF4648D4).withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.60),
+            borderRadius: BorderRadius.circular(9999),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF4648D4)
+                  : Colors.white.withValues(alpha: 0.80),
+              width: selected ? 1.5 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+              color: selected ? const Color(0xFF4648D4) : const Color(0xFF191C1D),
+            ),
+          ),
+        ),
       ),
     );
   }
