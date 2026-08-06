@@ -58,14 +58,12 @@ class _FinnectAppState extends ConsumerState<FinnectApp>
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     final themePreset = ref.watch(themePresetProvider);
-    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(preset: themePreset),
-      darkTheme: AppTheme.dark(preset: themePreset),
-      themeMode: themeMode,
+      themeMode: ThemeMode.light,
       routerConfig: router,
       builder: (context, child) {
         return AppLockGateScreen(

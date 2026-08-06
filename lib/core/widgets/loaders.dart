@@ -46,10 +46,14 @@ class EmptyState extends StatelessWidget {
                 color: context.colors.surfaceContainerHighest,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: AppSizes.iconLg, color: context.colors.onSurfaceVariant),
+              child: Icon(icon,
+                  size: AppSizes.iconLg,
+                  color: context.colors.onSurfaceVariant),
             ),
             const SizedBox(height: AppSizes.md),
-            Text(title, style: context.textStyles.titleMedium, textAlign: TextAlign.center),
+            Text(title,
+                style: context.textStyles.titleMedium,
+                textAlign: TextAlign.center),
             if (subtitle != null) ...[
               const SizedBox(height: AppSizes.xs),
               Text(
@@ -86,9 +90,12 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: AppSizes.iconLg, color: context.colors.error),
+            Icon(Icons.error_outline,
+                size: AppSizes.iconLg, color: context.colors.error),
             const SizedBox(height: AppSizes.md),
-            Text(message, style: context.textStyles.bodyMedium, textAlign: TextAlign.center),
+            Text(message,
+                style: context.textStyles.bodyMedium,
+                textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: AppSizes.md),
               TextButton.icon(

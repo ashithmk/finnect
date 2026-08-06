@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 
-/// Exact 1:1 color palette derived from the Liquid Glass Minimalist reference mockup:
-/// - Primary Text & Dark Pills: #1A1C23 / #000000
-/// - Crisp Card Surface: #FFFFFF (Pure White Card Fill)
-/// - Ambient Canvas: #F4F5F7 (Silvery Mist)
-/// - Dark Glass Banner: #252830 / #2D313A (Slate Dark Metal)
-/// - Muted Text: #757885
-/// - Positive Cash Flow: #005236 / #10B981
+/// Pure 1:1 color palette derived strictly from Google Stitch Liquid Minimalist light design:
+/// - Primary Charcoal & Text: #1A1C23
+/// - Pure White Card Fill: #FFFFFF
+/// - Ambient Canvas Atmosphere: #F4F5F7 (Silvery Mist)
+/// - Slate Dark Accent Banner: #252830
+/// - Muted Secondary Text: #757885
+/// - Positive Cash Flow / Income: #005236
 /// - Expense / Negative: #BA1A1A
 abstract class AppColors {
   AppColors._();
 
-  // Core Palette
+  // Core Stitch Light Palette
   static const Color primary = Color(0xFF1A1C23);
   static const Color onPrimary = Color(0xFFFFFFFF);
   static const Color primaryContainer = Color(0xFF252830);
-  static const Color onPrimaryContainer = Color(0xFF848484);
+  static const Color onPrimaryContainer = Color(0xFFFFFFFF);
 
   static const Color secondary = Color(0xFF4648D4);
   static const Color onSecondary = Color(0xFFFFFFFF);
@@ -23,9 +23,7 @@ abstract class AppColors {
 
   static const Color surface = Color(0xFFF4F5F7);
   static const Color surfaceLight = Color(0xFFF4F5F7);
-  static const Color surfaceDark = Color(0xFF0A0A0A);
   static const Color cardLight = Colors.white;
-  static const Color cardDark = Color(0xFF252830);
 
   static const Color textPrimary = Color(0xFF1A1C23);
   static const Color textSecondary = Color(0xFF757885);
@@ -52,17 +50,14 @@ abstract class AppColors {
   static const Color budgetWarning = Color(0xFFF59E0B);
   static const Color budgetDanger = Color(0xFFBA1A1A);
 
-  // Legacy Aliases
+  // Design Tokens & Aliases
   static const Color primaryIndigo = Color(0xFF1A1C23);
   static const Color deepIndigo = Color(0xFF252830);
   static const Color softIndigo = Color(0xFF4648D4);
   static const Color glassBorder = Color(0xFFFFFFFF);
   static const Color iceWhite = Color(0xFFFFFFFF);
   static const Color mutedPeriwinkle = Color(0xFF757885);
-  static const Color darkInputFill = Color(0xFF1A1C23);
   static const Color seedLight = Color(0xFF1A1C23);
-  static const Color seedDark = Color(0xFF1A1C23);
-  static const Color obsidianBlack = Color(0xFF0A0A0A);
 
   static const List<Color> categoryPalette = <Color>[
     Color(0xFF1A1C23),

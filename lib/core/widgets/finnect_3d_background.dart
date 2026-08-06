@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// 1:1 Implementation of the ambient mesh background from the mockup image:
-/// - Silvery mist base: #F4F5F7
-/// - Top-Left Periwinkle Glow: rgba(214, 224, 240, 0.65)
-/// - Bottom-Right Mist Teal Glow: rgba(216, 232, 230, 0.45)
-/// - Top-Right Pearl Lavender Glow: rgba(235, 230, 242, 0.45)
+/// 1:1 Implementation of the minimalist silvery grey mist background from the user screenshot:
+/// - Silvery grey canvas base: #E4E7EC
+/// - Top-Left Soft Metallic Mist: #BDC2CC fading softly
+/// - Bottom-Right Soft Slate Glow: #C8CDD6 fading softly
+/// - Center Soft Ambient Highlight: #F7F8FA for high contrast against crisp white cards
 class Finnect3DBackground extends StatelessWidget {
   final Widget child;
 
@@ -12,105 +12,70 @@ class Finnect3DBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (!isDark) {
-      return Container(
-        color: const Color(0xFFF4F5F7),
-        child: Stack(
-          children: [
-            // 1. Top-Left Soft Periwinkle Glow
-            Positioned(
-              top: -80,
-              left: -60,
-              width: 480,
-              height: 480,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.5, -0.5),
-                    radius: 0.85,
-                    colors: [
-                      const Color(0xFFD6E0F0).withValues(alpha: 0.65),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // 2. Bottom-Right Soft Mist Teal Glow
-            Positioned(
-              bottom: -100,
-              right: -80,
-              width: 520,
-              height: 520,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    center: const Alignment(0.5, 0.5),
-                    radius: 0.85,
-                    colors: [
-                      const Color(0xFFD8E8E6).withValues(alpha: 0.45),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // 3. Top-Right Soft Pearl Lavender Glow
-            Positioned(
-              top: -100,
-              right: -60,
-              width: 450,
-              height: 450,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    center: const Alignment(0.4, -0.6),
-                    radius: 0.85,
-                    colors: [
-                      const Color(0xFFEBE6F2).withValues(alpha: 0.45),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Main Screen Content
-            child,
-          ],
-        ),
-      );
-    }
-
-    // Dark Mode Fallback
     return Container(
-      color: const Color(0xFF0A0A0A),
+      color: const Color(0xFFE4E7EC),
       child: Stack(
         children: [
+          // 1. Top-Left Soft Silvery Metallic Mist
           Positioned(
-            top: -120,
-            right: -80,
-            width: 440,
-            height: 440,
+            top: -140,
+            left: -120,
+            width: 580,
+            height: 580,
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
+                  center: const Alignment(-0.4, -0.4),
+                  radius: 0.85,
                   colors: [
-                    const Color(0xFF4648D4).withValues(alpha: 0.18),
+                    const Color(0xFFBAC0CB).withValues(alpha: 0.75),
+                    const Color(0xFFE4E7EC).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 2. Bottom-Right Soft Slate Mist Curve
+          Positioned(
+            bottom: -160,
+            right: -140,
+            width: 620,
+            height: 620,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  center: const Alignment(0.4, 0.4),
+                  radius: 0.85,
+                  colors: [
+                    const Color(0xFFC2C7D2).withValues(alpha: 0.70),
+                    const Color(0xFFE4E7EC).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Center Soft Off-White Ambient Light
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFFF4F5F7).withValues(alpha: 0.40),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
+
+          // Main Screen Content
           child,
         ],
       ),

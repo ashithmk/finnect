@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../app/constants/app_colors.dart';
 import '../../app/constants/app_sizes.dart';
 import '../../app/constants/app_strings.dart';
 import '../../features/transactions/domain/transaction_model.dart';
@@ -9,10 +10,10 @@ import '../../features/transactions/presentation/widgets/add_transaction_sheet.d
 import '../providers/ui_providers.dart';
 import 'finnect_3d_background.dart';
 
-/// Floating capsule navigation bar 1:1 matching the reference mockup image:
+/// Floating capsule navigation bar matching Google Stitch design:
 /// - Full rounded pill capsule: borderRadius 9999
 /// - Background: rgba(255, 255, 255, 0.92) with 20px blur & 1px white border
-/// - Active Tab: Solid dark charcoal capsule (#1A1C23 / #000000) with white icon and text label
+/// - Active Tab: Solid dark charcoal capsule (#1A1C23) with white icon and text label
 /// - Inactive Tabs: Subtle circular icon buttons
 class AppScaffoldShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -65,8 +66,6 @@ class AppScaffoldShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     final isSheetOpen = ref.watch(isBottomSheetOpenProvider);
     final mediaQuery = MediaQuery.of(context);
@@ -85,7 +84,7 @@ class AppScaffoldShell extends ConsumerWidget {
               child: navigationShell,
             ),
 
-            // 2. Floating Capsule Navigation Bar matching mockup
+            // 2. Floating Capsule Navigation Bar
             if (!isKeyboardOpen && !isSheetOpen)
               Positioned(
                 left: 20.0,
@@ -102,14 +101,10 @@ class AppScaffoldShell extends ConsumerWidget {
                           height: 64,
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF252830).withValues(alpha: 0.92)
-                                : Colors.white.withValues(alpha: 0.92),
+                            color: Colors.white.withValues(alpha: 0.92),
                             borderRadius: BorderRadius.circular(9999),
                             border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.15)
-                                  : Colors.white,
+                              color: AppColors.glassBorder,
                               width: 1.0,
                             ),
                             boxShadow: [
@@ -152,7 +147,7 @@ class AppScaffoldShell extends ConsumerWidget {
         height: 42,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0xFF1A1C23),
+          color: AppColors.primary,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.18),
@@ -173,8 +168,6 @@ class AppScaffoldShell extends ConsumerWidget {
   Widget _buildTabItem(BuildContext context, int branchIndex) {
     final bool selected = navigationShell.currentIndex == branchIndex;
     final _NavItem item = _items[branchIndex];
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     if (selected) {
       return InkWell(
@@ -183,7 +176,7 @@ class AppScaffoldShell extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white : const Color(0xFF1A1C23),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(9999),
             boxShadow: [
               BoxShadow(
@@ -198,14 +191,14 @@ class AppScaffoldShell extends ConsumerWidget {
             children: [
               Icon(
                 item.selectedIcon,
-                color: isDark ? const Color(0xFF1A1C23) : Colors.white,
+                color: Colors.white,
                 size: 18,
               ),
               const SizedBox(width: 6),
               Text(
                 item.label,
-                style: TextStyle(
-                  color: isDark ? const Color(0xFF1A1C23) : Colors.white,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -225,7 +218,7 @@ class AppScaffoldShell extends ConsumerWidget {
         alignment: Alignment.center,
         child: Icon(
           item.icon,
-          color: isDark ? Colors.white54 : const Color(0xFF757885),
+          color: AppColors.textSecondary,
           size: 22,
         ),
       ),

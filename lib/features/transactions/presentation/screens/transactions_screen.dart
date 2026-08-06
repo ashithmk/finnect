@@ -3,17 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/constants/app_colors.dart';
 import '../../../../app/constants/app_sizes.dart';
 import '../../../../app/utils/currency_formatter.dart';
 import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../../core/widgets/loaders.dart';
-import '../../../../core/widgets/stitch_glass_card.dart';
+import '../../../../core/widgets/finnect_glass_card.dart';
 import '../../data/transaction_providers.dart';
 import '../../domain/transaction_model.dart';
 import '../widgets/add_transaction_sheet.dart';
 
-/// Redesigned History Screen strictly adhering to `finnect_design/history_reverted_footer/code.html`.
+/// History Screen strictly adhering to `finnect_design/history_reverted_footer/code.html` and Google Stitch Light theme.
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
 
@@ -54,8 +55,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   Widget build(BuildContext context) {
     final transactionsAsync = ref.watch(transactionsStreamProvider);
     final currency = CurrencyFormatter();
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final currentMonthKey = DateFormat('yyyy-MM').format(DateTime.now());
 
     return Finnect3DBackground(
@@ -115,7 +114,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Month Selector Header matching code.html lines 156-168
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                     child: Row(
@@ -127,7 +125,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : const Color(0xFF191C1D),
+                            color: AppColors.textPrimary,
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -155,7 +153,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                   ),
                                 );
                               }).toList(),
-                              child: StitchGlassCard(
+                              child: FinnectGlassCard(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 8),
                                 borderRadius: BorderRadius.circular(9999),
@@ -168,18 +166,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 0.6,
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF191C1D),
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                     const SizedBox(width: 4),
-                                    Icon(
+                                    const Icon(
                                       Icons.expand_more_rounded,
                                       size: 18,
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF191C1D),
+                                      color: AppColors.textPrimary,
                                     ),
                                   ],
                                 ),
@@ -196,9 +190,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         ? Center(
                             child: Text(
                               'No transactions found for $selectedMonthLabel',
-                              style: TextStyle(
+                              style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: isDark ? Colors.white60 : const Color(0xFF4C4546),
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           )
@@ -252,7 +246,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 }
 
-/// 1:1 Expandable Daily Summary Glass Card matching code.html lines 171-261.
 class _DailySummaryExpandableCard extends StatefulWidget {
   final String groupKey;
   final double dayTotal;
@@ -285,15 +278,11 @@ class _DailySummaryExpandableCardState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return StitchGlassCard(
+    return FinnectGlassCard(
       padding: EdgeInsets.zero,
       borderRadius: BorderRadius.circular(24),
       child: Column(
         children: [
-          // Daily Summary Header Row matching code.html lines 173-179
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             borderRadius: BorderRadius.circular(24),
@@ -303,9 +292,7 @@ class _DailySummaryExpandableCardState
                 border: _isExpanded
                     ? Border(
                         bottom: BorderSide(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.1)
-                              : Colors.white.withValues(alpha: 0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       )
@@ -318,7 +305,7 @@ class _DailySummaryExpandableCardState
                         ? Icons.expand_more_rounded
                         : Icons.chevron_right_rounded,
                     size: 22,
-                    color: isDark ? Colors.white : const Color(0xFF191C1D),
+                    color: AppColors.textPrimary,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -328,7 +315,7 @@ class _DailySummaryExpandableCardState
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.6,
-                        color: isDark ? Colors.white : const Color(0xFF191C1D),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -338,8 +325,8 @@ class _DailySummaryExpandableCardState
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: widget.dayTotal < 0
-                          ? (isDark ? Colors.white : const Color(0xFF191C1D))
-                          : const Color(0xFF005236),
+                          ? AppColors.textPrimary
+                          : AppColors.income,
                     ),
                   ),
                 ],
@@ -347,7 +334,6 @@ class _DailySummaryExpandableCardState
             ),
           ),
 
-          // Expanded Items List matching code.html lines 181-260
           if (_isExpanded)
             Padding(
               padding: const EdgeInsets.all(8),
@@ -367,7 +353,6 @@ class _DailySummaryExpandableCardState
   }
 }
 
-/// 1:1 Transaction Item Tile matching code.html lines 183-213 & 228-260.
 class _TransactionItemTile extends ConsumerWidget {
   final TransactionModel transaction;
   final CurrencyFormatter currency;
@@ -404,7 +389,7 @@ class _TransactionItemTile extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: AppColors.expense)),
           ),
         ],
       ),
@@ -430,8 +415,6 @@ class _TransactionItemTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isIncome = transaction.type == TransactionType.income;
     final timeStr = DateFormat.jm().format(transaction.date);
 
@@ -448,21 +431,16 @@ class _TransactionItemTile extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              // Glass Icon Pill (.glass-icon: 48x48 rounded full with 8px blur and 1px white border)
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isIncome
-                      ? const Color(0xFF4EDEA3).withValues(alpha: 0.20)
-                      : (isDark
-                          ? Colors.white.withValues(alpha: 0.10)
-                          : Colors.white.withValues(alpha: 0.60)),
+                      ? AppColors.income.withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.60),
                   border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.20)
-                        : Colors.white.withValues(alpha: 0.80),
+                    color: Colors.white,
                     width: 1.0,
                   ),
                   boxShadow: [
@@ -476,9 +454,7 @@ class _TransactionItemTile extends ConsumerWidget {
                 child: Icon(
                   _getCategoryIcon(transaction.category),
                   size: 22,
-                  color: isIncome
-                      ? const Color(0xFF005236)
-                      : (isDark ? Colors.white : const Color(0xFF191C1D)),
+                  color: isIncome ? AppColors.income : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(width: 14),
@@ -491,7 +467,7 @@ class _TransactionItemTile extends ConsumerWidget {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : const Color(0xFF191C1D),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -499,7 +475,7 @@ class _TransactionItemTile extends ConsumerWidget {
                       transaction.category,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: isDark ? Colors.white54 : const Color(0xFF4C4546),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -513,9 +489,7 @@ class _TransactionItemTile extends ConsumerWidget {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isIncome
-                          ? const Color(0xFF005236)
-                          : (isDark ? Colors.white : const Color(0xFF191C1D)),
+                      color: isIncome ? AppColors.income : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -523,14 +497,14 @@ class _TransactionItemTile extends ConsumerWidget {
                     timeStr,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: isDark ? Colors.white54 : const Color(0xFF4C4546),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                color: isDark ? Colors.white38 : Colors.grey,
+                color: AppColors.textSecondary,
                 onPressed: () => _confirmDelete(context, ref),
               ),
             ],

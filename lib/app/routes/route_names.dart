@@ -17,31 +17,13 @@ abstract class RouteNames {
   static const String budget = '/budget';
   static const String profile = '/profile';
 
-  // Transactions
-  static const String addTransaction = '/transactions/add';
-  static const String editTransaction = '/transactions/edit'; // :id
-  static const String transactionDetail = '/transactions/detail'; // :id
-
-  // Accounts
-  static const String accounts = '/accounts';
-  static const String addAccount = '/accounts/add';
-
-  // Categories
-  static const String categories = '/categories';
-  static const String addCategory = '/categories/add';
-
-  // Budget / Goals
-  static const String addBudget = '/budget/add';
+  // Goals
   static const String goals = '/goals';
   static const String addGoal = '/goals/add';
   static const String goalDetail = '/goals/detail'; // :id
 
-  // Calendar / Recurring / Receipts / Reports
-  static const String calendar = '/calendar';
-  static const String recurring = '/recurring';
-  static const String addRecurring = '/recurring/add';
-  static const String receipts = '/receipts';
-  static const String reports = '/reports';
+  // Budget
+  static const String addBudget = '/budget/add';
 
   // Profile
   static const String editProfile = '/profile/edit';

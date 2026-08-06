@@ -31,7 +31,8 @@ class AddTransactionSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AddTransactionSheet> createState() => _AddTransactionSheetState();
+  ConsumerState<AddTransactionSheet> createState() =>
+      _AddTransactionSheetState();
 }
 
 class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
@@ -77,7 +78,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   void initState() {
     super.initState();
     _selectedType = widget.initialType;
-    _selectedCategory = _selectedType == TransactionType.income ? 'Salary' : 'Food';
+    _selectedCategory =
+        _selectedType == TransactionType.income ? 'Salary' : 'Food';
   }
 
   @override
@@ -119,14 +121,17 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     // If an amount is currently typed under the old category, capture it to draft list!
     if (_currentInputTotal > 0) {
       String catName = _selectedCategory;
-      if (_selectedCategory == 'Lend' && _lendPersonController.text.trim().isNotEmpty) {
+      if (_selectedCategory == 'Lend' &&
+          _lendPersonController.text.trim().isNotEmpty) {
         catName = 'Lend (${_lendPersonController.text.trim()})';
-      } else if ((_selectedCategory == 'Others' || _selectedCategory == 'Other') &&
+      } else if ((_selectedCategory == 'Others' ||
+              _selectedCategory == 'Other') &&
           _customCategoryController.text.trim().isNotEmpty) {
         catName = _customCategoryController.text.trim();
       }
 
-      _draftItems.add(_DraftExpenseItem(category: catName, amount: _currentInputTotal));
+      _draftItems.add(
+          _DraftExpenseItem(category: catName, amount: _currentInputTotal));
       _subAdditionItems.clear();
       _amountController.clear();
       _customCategoryController.clear();
@@ -217,7 +222,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final amount = double.tryParse(_amountController.text.trim()) ?? 0.0;
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid amount greater than 0.')),
+        const SnackBar(
+            content: Text('Please enter a valid amount greater than 0.')),
       );
       return;
     }
@@ -282,7 +288,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
     // Standard Add Balance mode
     String catName = _selectedCategory;
-    if (_selectedCategory == 'Other' && _customCategoryController.text.trim().isNotEmpty) {
+    if (_selectedCategory == 'Other' &&
+        _customCategoryController.text.trim().isNotEmpty) {
       catName = _customCategoryController.text.trim();
     }
 
@@ -338,12 +345,15 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     // Auto-capture current active input if valid
     if (_currentInputTotal > 0) {
       String catName = _selectedCategory;
-      if (_selectedCategory == 'Lend' && _lendPersonController.text.trim().isNotEmpty) {
+      if (_selectedCategory == 'Lend' &&
+          _lendPersonController.text.trim().isNotEmpty) {
         catName = 'Lend (${_lendPersonController.text.trim()})';
-      } else if (_selectedCategory == 'Others' && _customCategoryController.text.trim().isNotEmpty) {
+      } else if (_selectedCategory == 'Others' &&
+          _customCategoryController.text.trim().isNotEmpty) {
         catName = _customCategoryController.text.trim();
       }
-      _draftItems.add(_DraftExpenseItem(category: catName, amount: _currentInputTotal));
+      _draftItems.add(
+          _DraftExpenseItem(category: catName, amount: _currentInputTotal));
       _subAdditionItems.clear();
       _amountController.clear();
       _lendPersonController.clear();
@@ -351,7 +361,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
     if (_draftItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an amount for at least one category.')),
+        const SnackBar(
+            content: Text('Please enter an amount for at least one category.')),
       );
       return;
     }
@@ -363,7 +374,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     for (int i = 0; i < _draftItems.length; i++) {
       final item = _draftItems[i];
       totalDaySum += item.amount;
-      
+
       final finalDateTime = DateTime(
         _selectedDate.year,
         _selectedDate.month,
@@ -436,16 +447,18 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       onTap: isLoading ? null : _pickDate,
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.white.withValues(alpha: 0.08)
                               : Colors.black.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white.withValues(alpha: 0.18)
-                                : Colors.black.withValues(alpha: 0.12),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white.withValues(alpha: 0.18)
+                                    : Colors.black.withValues(alpha: 0.12),
                           ),
                         ),
                         child: Row(
@@ -454,14 +467,21 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                             Icon(
                               Icons.calendar_today_outlined,
                               size: 14,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.85),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               formattedDate,
-                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                             ),
                           ],
@@ -471,7 +491,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
                     Text(
                       isIncomeMode
-                          ? (_isTransferToSavings ? 'Move to Savings' : 'Add Balance')
+                          ? (_isTransferToSavings
+                              ? 'Move to Savings'
+                              : 'Add Balance')
                           : 'Add Expense',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
@@ -520,10 +542,16 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     Container(
                       padding: const EdgeInsets.all(AppSizes.sm + 2),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primaryContainer
+                            .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -531,13 +559,19 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         children: [
                           Text(
                             'Available Total Balance:',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                           ),
                           Text(
                             '₹ ${summary.totalBalance.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
@@ -552,16 +586,20 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   TextFormField(
                     controller: _amountController,
                     focusNode: _amountFocusNode,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                     decoration: InputDecoration(
-                      labelText: _isTransferToSavings ? 'Amount to Move to Savings' : 'Enter Balance Amount',
+                      labelText: _isTransferToSavings
+                          ? 'Amount to Move to Savings'
+                          : 'Enter Balance Amount',
                       prefixText: '₹ ',
-                      prefixStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                      prefixStyle:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                       hintText: '0.00',
                     ),
                     enabled: !isLoading,
@@ -572,9 +610,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   // Mandatory Source Category Selector (Standard Add Balance mode)
                   if (!_isTransferToSavings) ...[
                     DropdownButtonFormField<String>(
-                      initialValue: _incomeCategories.contains(_selectedCategory)
-                          ? _selectedCategory
-                          : _incomeCategories.first,
+                      initialValue:
+                          _incomeCategories.contains(_selectedCategory)
+                              ? _selectedCategory
+                              : _incomeCategories.first,
                       decoration: const InputDecoration(
                         labelText: 'Source Category (Income Source)',
                         prefixIcon: Icon(Icons.account_balance_wallet_outlined),
@@ -594,7 +633,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       onChanged: isLoading
                           ? null
                           : (val) {
-                              if (val != null) setState(() => _selectedCategory = val);
+                              if (val != null) {
+                                setState(() => _selectedCategory = val);
+                              }
                             },
                     ),
 
@@ -615,7 +656,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
                   const SizedBox(height: AppSizes.xl),
                   PrimaryButton(
-                    label: _isTransferToSavings ? 'Transfer to Savings' : 'Save Balance',
+                    label: _isTransferToSavings
+                        ? 'Transfer to Savings'
+                        : 'Save Balance',
                     isLoading: isLoading,
                     onPressed: _submitBalance,
                   ),
@@ -630,14 +673,21 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         child: TextFormField(
                           controller: _amountController,
                           focusNode: _amountFocusNode,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                           decoration: InputDecoration(
                             labelText: 'Price / Amount',
                             prefixText: '₹ ',
-                            prefixStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            prefixStyle: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                             hintText: '0.00',
@@ -654,12 +704,15 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(54, 54),
                           padding: EdgeInsets.zero,
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                            borderRadius:
+                                BorderRadius.circular(AppSizes.radiusMd),
                           ),
                         ),
-                        child: const Icon(Icons.add, size: 26, color: Colors.white),
+                        child: const Icon(Icons.add,
+                            size: 26, color: Colors.white),
                       ),
                     ],
                   ),
@@ -673,7 +726,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       children: [
                         for (int i = 0; i < _subAdditionItems.length; i++)
                           Chip(
-                            label: Text('+₹${_subAdditionItems[i].toStringAsFixed(0)}'),
+                            label: Text(
+                                '+₹${_subAdditionItems[i].toStringAsFixed(0)}'),
                             visualDensity: VisualDensity.compact,
                           ),
                       ],
@@ -743,10 +797,16 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     Container(
                       padding: const EdgeInsets.all(AppSizes.sm),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outlineVariant
+                              .withValues(alpha: 0.5),
                         ),
                       ),
                       child: Column(
@@ -756,35 +816,46 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                               children: [
                                 CircleAvatar(
                                   radius: 12,
-                                  backgroundColor: _getCategoryColor(_draftItems[i].category).withValues(alpha: 0.15),
+                                  backgroundColor:
+                                      _getCategoryColor(_draftItems[i].category)
+                                          .withValues(alpha: 0.15),
                                   child: Icon(
                                     _getCategoryIcon(_draftItems[i].category),
                                     size: 14,
-                                    color: _getCategoryColor(_draftItems[i].category),
+                                    color: _getCategoryColor(
+                                        _draftItems[i].category),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     _draftItems[i].category,
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
                                 ),
                                 Text(
                                   '₹ ${_draftItems[i].amount.toStringAsFixed(2)}',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.close, size: 16, color: Colors.redAccent),
+                                  icon: const Icon(Icons.close,
+                                      size: 16, color: Colors.redAccent),
                                   onPressed: () => _removeDraftItem(i),
                                 ),
                               ],
                             ),
-                            if (i < _draftItems.length - 1) const Divider(height: 8),
+                            if (i < _draftItems.length - 1)
+                              const Divider(height: 8),
                           ],
                         ],
                       ),
@@ -794,9 +865,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
                   // Combined Total Day Expense Summary Box
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.sm),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.md, vertical: AppSizes.sm),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primaryContainer
+                          .withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(AppSizes.radiusMd),
                     ),
                     child: Row(
@@ -804,13 +879,17 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       children: [
                         Text(
                           'Total Day Expense:',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         Text(
                           '₹ ${_combinedTotalDayExpense.toStringAsFixed(2)}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
                               ),

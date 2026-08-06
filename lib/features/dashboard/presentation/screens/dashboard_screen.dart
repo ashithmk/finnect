@@ -4,22 +4,23 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/constants/app_colors.dart';
 import '../../../../app/constants/app_sizes.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../app/utils/currency_formatter.dart';
 import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
-import '../../../../core/widgets/stitch_glass_card.dart';
+import '../../../../core/widgets/finnect_glass_card.dart';
 import '../../../transactions/data/transaction_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
 import '../../../transactions/presentation/widgets/add_transaction_sheet.dart';
 import '../widgets/balance_details_sheet.dart';
 import '../widgets/reminder_sheet.dart';
 
-/// 1:1 Dashboard strictly matching `finnect_design/home_reverted_footer_floating_fab/code.html`:
+/// Dashboard matching Google Stitch design system:
 /// - Clean light mode white liquid glass hero & activity cards over multi-glow mesh backdrop
 /// - Playfair Display headers & Inter body text
-/// - Black "Add Funds" pill button & Translucent "Transfer" pill button
+/// - Dark Charcoal "Add Funds" pill button in balance card header
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -40,8 +41,6 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currency = CurrencyFormatter();
     final summary = ref.watch(dashboardSummaryProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Finnect3DBackground(
       child: Scaffold(
@@ -50,16 +49,15 @@ class DashboardScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 120),
             children: [
-              // Header matching code.html lines 177-186
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Wallet',
+                    'Finnect',
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF191C1D),
+                      color: AppColors.textPrimary,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -71,9 +69,7 @@ class DashboardScreen extends ConsumerWidget {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.12)
-                            : Colors.white,
+                        color: Colors.white,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.05),
@@ -82,10 +78,10 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.notifications_outlined,
                         size: 20,
-                        color: isDark ? Colors.white : const Color(0xFF191C1D),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -93,7 +89,6 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
 
-              // Total Balance Hero Card matching code.html line 189
               _TotalBalanceCard(
                 currency: currency,
                 totalBalance: summary.totalBalance,
@@ -101,14 +96,12 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Monthly Expenses Card
               _MonthlyExpenseCard(
                 currency: currency,
                 monthlyExpense: summary.monthlyExpense,
               ),
               const SizedBox(height: 24),
 
-              // Recent Activity Section
               _SectionHeader(
                 title: 'Recent Activity',
                 onSeeAll: () => context.go(RouteNames.transactions),
@@ -127,7 +120,6 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-/// 1:1 Total Balance Hero Card matching code.html line 189.
 class _TotalBalanceCard extends ConsumerWidget {
   final CurrencyFormatter currency;
   final double totalBalance;
@@ -170,12 +162,10 @@ class _TotalBalanceCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final safeBalance = totalBalance.isNaN ? 0.0 : totalBalance;
     final safeSavings = (savings.isNaN || savings < 0) ? 0.0 : savings;
 
-    return StitchGlassCard(
+    return FinnectGlassCard(
       onTap: () => _openBalanceDetails(context, ref),
       blur: 20,
       borderRadius: BorderRadius.circular(28),
@@ -183,7 +173,6 @@ class _TotalBalanceCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: TOTAL BALANCE on Left & Top-Right "Add Funds" Pill Button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +187,7 @@ class _TotalBalanceCard extends ConsumerWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
-                        color: isDark ? Colors.white54 : const Color(0xFF757885),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -207,7 +196,7 @@ class _TotalBalanceCard extends ConsumerWidget {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : const Color(0xFF1A1C23),
+                        color: AppColors.textPrimary,
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -216,9 +205,8 @@ class _TotalBalanceCard extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
 
-              // Top-Right "Add Funds" Pill Button
               Material(
-                color: isDark ? Colors.white : const Color(0xFF1A1C23),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(9999),
                 elevation: 2,
                 shadowColor: Colors.black.withValues(alpha: 0.15),
@@ -231,11 +219,10 @@ class _TotalBalanceCard extends ConsumerWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.add_rounded,
                           size: 16,
-                          color:
-                              isDark ? const Color(0xFF1A1C23) : Colors.white,
+                          color: Colors.white,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -243,8 +230,7 @@ class _TotalBalanceCard extends ConsumerWidget {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color:
-                                isDark ? const Color(0xFF1A1C23) : Colors.white,
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -256,7 +242,6 @@ class _TotalBalanceCard extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
 
-          // Savings display
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -265,7 +250,7 @@ class _TotalBalanceCard extends ConsumerWidget {
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white70 : const Color(0xFF757885),
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -276,7 +261,6 @@ class _TotalBalanceCard extends ConsumerWidget {
   }
 }
 
-/// Monthly Expenses Glass Card
 class _MonthlyExpenseCard extends StatelessWidget {
   final CurrencyFormatter currency;
   final double monthlyExpense;
@@ -288,34 +272,29 @@ class _MonthlyExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final monthName = DateFormat.MMMM().format(DateTime.now());
     final safeExpense =
         (monthlyExpense.isNaN || monthlyExpense < 0) ? 0.0 : monthlyExpense;
 
-    return StitchGlassCard(
+    return FinnectGlassCard(
       blur: 20,
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      glassColor: isDark
-          ? const Color(0xFF0F172A).withValues(alpha: 0.80)
-          : Colors.white.withValues(alpha: 0.70),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFBA1A1A).withValues(alpha: 0.12),
+              color: AppColors.expense.withValues(alpha: 0.12),
               shape: BoxShape.circle,
               border: Border.all(
-                color: const Color(0xFFBA1A1A).withValues(alpha: 0.30),
+                color: AppColors.expense.withValues(alpha: 0.30),
               ),
             ),
             child: const Icon(
               Icons.calendar_today_rounded,
               size: 20,
-              color: Color(0xFFBA1A1A),
+              color: AppColors.expense,
             ),
           ),
           const SizedBox(width: 16),
@@ -327,7 +306,7 @@ class _MonthlyExpenseCard extends StatelessWidget {
                   'Expenses ($monthName)',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: isDark ? Colors.white60 : const Color(0xFF4C4546),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -336,7 +315,7 @@ class _MonthlyExpenseCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFFBA1A1A),
+                    color: AppColors.expense,
                   ),
                 ),
               ],
@@ -356,9 +335,6 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -367,7 +343,7 @@ class _SectionHeader extends StatelessWidget {
           style: GoogleFonts.playfairDisplay(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : const Color(0xFF191C1D),
+            color: AppColors.textPrimary,
           ),
         ),
         if (onSeeAll != null)
@@ -378,7 +354,7 @@ class _SectionHeader extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF4648D4),
+                color: AppColors.secondary,
               ),
             ),
           ),
@@ -424,19 +400,16 @@ class _RecentTransactionsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     if (transactions.isEmpty) {
-      return StitchGlassCard(
+      return FinnectGlassCard(
         padding: const EdgeInsets.all(24),
         borderRadius: BorderRadius.circular(24),
         child: Column(
           children: [
-            Icon(
+            const Icon(
               Icons.account_balance_wallet_outlined,
               size: 44,
-              color: isDark ? Colors.white38 : const Color(0xFF7E7576),
+              color: AppColors.textSecondary,
             ),
             const SizedBox(height: 12),
             Text(
@@ -444,7 +417,7 @@ class _RecentTransactionsList extends ConsumerWidget {
               style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF191C1D),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -462,8 +435,8 @@ class _RecentTransactionsList extends ConsumerWidget {
               icon: const Icon(Icons.add),
               label: const Text('Add Expense'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.white : const Color(0xFF000000),
-                foregroundColor: isDark ? Colors.black : Colors.white,
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(9999),
                 ),
@@ -519,8 +492,6 @@ class _RecentDayCardState extends State<_RecentDayCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     double dayIncome = 0.0;
     double dayExpense = 0.0;
     for (final item in widget.items) {
@@ -543,15 +514,12 @@ class _RecentDayCardState extends State<_RecentDayCard> {
             : widget.currency.format(0.0));
 
     final rightSideColor = dayExpense > 0
-        ? (isDark ? Colors.white : const Color(0xFF191C1D))
-        : (dayIncome > 0 ? const Color(0xFF005236) : const Color(0xFF7E7576));
+        ? AppColors.textPrimary
+        : (dayIncome > 0 ? AppColors.income : AppColors.textSecondary);
 
-    return StitchGlassCard(
+    return FinnectGlassCard(
       padding: EdgeInsets.zero,
       borderRadius: BorderRadius.circular(24),
-      glassColor: isDark
-          ? const Color(0xFF0F172A).withValues(alpha: 0.80)
-          : Colors.white.withValues(alpha: 0.70),
       child: Column(
         children: [
           InkWell(
@@ -566,14 +534,12 @@ class _RecentDayCardState extends State<_RecentDayCard> {
                     height: 36,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : Colors.white.withValues(alpha: 0.60),
+                      color: AppColors.glassSubtleFill,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.calendar_today_outlined,
                       size: 16,
-                      color: isDark ? Colors.white : const Color(0xFF191C1D),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -586,7 +552,7 @@ class _RecentDayCardState extends State<_RecentDayCard> {
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF191C1D),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         if (subtitleText != null)
@@ -595,7 +561,7 @@ class _RecentDayCardState extends State<_RecentDayCard> {
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF005236),
+                              color: AppColors.income,
                             ),
                           ),
                       ],
@@ -617,7 +583,7 @@ class _RecentDayCardState extends State<_RecentDayCard> {
                             ? Icons.keyboard_arrow_up_rounded
                             : Icons.keyboard_arrow_down_rounded,
                         size: 18,
-                        color: isDark ? Colors.white54 : const Color(0xFF7E7576),
+                        color: AppColors.textSecondary,
                       ),
                     ],
                   ),
@@ -680,7 +646,7 @@ class _TransactionTile extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: AppColors.expense)),
           ),
         ],
       ),
@@ -706,8 +672,6 @@ class _TransactionTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isIncome = transaction.type == TransactionType.income;
     final timeStr = DateFormat.jm().format(transaction.date);
 
@@ -720,9 +684,7 @@ class _TransactionTile extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           margin: const EdgeInsets.only(bottom: 4),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white.withValues(alpha: 0.40),
+            color: Colors.white.withValues(alpha: 0.60),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -732,7 +694,7 @@ class _TransactionTile extends ConsumerWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white,
+                  color: Colors.white,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.03),
@@ -744,7 +706,7 @@ class _TransactionTile extends ConsumerWidget {
                 child: Icon(
                   _getCategoryIcon(transaction.category),
                   size: 20,
-                  color: isDark ? Colors.white : const Color(0xFF191C1D),
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(width: 14),
@@ -757,7 +719,7 @@ class _TransactionTile extends ConsumerWidget {
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : const Color(0xFF191C1D),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -765,7 +727,7 @@ class _TransactionTile extends ConsumerWidget {
                       '${transaction.category} · $timeStr',
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: isDark ? Colors.white54 : const Color(0xFF7E7576),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -776,9 +738,7 @@ class _TransactionTile extends ConsumerWidget {
                 style: GoogleFonts.inter(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: isIncome
-                      ? const Color(0xFF005236)
-                      : (isDark ? Colors.white : const Color(0xFF191C1D)),
+                  color: isIncome ? AppColors.income : AppColors.textPrimary,
                 ),
               ),
             ],

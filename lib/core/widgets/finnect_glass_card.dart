@@ -1,13 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../app/constants/app_colors.dart';
 
-/// 1:1 Match of Liquid Glass White Bento Cards from reference mockup image:
-/// - Pure crisp white card container: #FFFFFF (with 90-95% translucency)
-/// - Corner Radius: 28px - 32px
+/// Finnect Liquid Glass Card — core glass-morphism container used across
+/// all Finnect bento-layout screens.
+/// - Pure white card container (#FFFFFF, 92% translucency)
+/// - Corner Radius: 28px default
 /// - Backdrop Filter Blur: 20px
-/// - Border: 1px solid rgba(255, 255, 255, 0.90) / rgba(0, 0, 0, 0.04)
+/// - Border: 1px solid #FFFFFF specular highlight
 /// - Soft 3D Drop Shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.06) + inset specular glow
-class StitchGlassCard extends StatelessWidget {
+class FinnectGlassCard extends StatelessWidget {
   final Widget child;
   final double blur;
   final BorderRadius? borderRadius;
@@ -16,12 +18,11 @@ class StitchGlassCard extends StatelessWidget {
   final Color? glassColor;
   final Color? borderColor;
   final Gradient? gradient;
-  final bool isDarkGlass;
   final VoidCallback? onTap;
   final double? width;
   final double? height;
 
-  const StitchGlassCard({
+  const FinnectGlassCard({
     super.key,
     required this.child,
     this.blur = 20.0,
@@ -31,7 +32,6 @@ class StitchGlassCard extends StatelessWidget {
     this.glassColor,
     this.borderColor,
     this.gradient,
-    this.isDarkGlass = false,
     this.onTap,
     this.width,
     this.height,
@@ -39,18 +39,10 @@ class StitchGlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark || isDarkGlass;
-
     final effectiveRadius = borderRadius ?? BorderRadius.circular(28.0);
 
-    final defaultGlassColor = isDark
-        ? const Color(0xFF252830).withValues(alpha: 0.90)
-        : Colors.white.withValues(alpha: 0.92);
-
-    final defaultBorderColor = isDark
-        ? Colors.white.withValues(alpha: 0.15)
-        : Colors.white;
+    final defaultGlassColor = Colors.white.withValues(alpha: 0.92);
+    final defaultBorderColor = AppColors.glassBorder;
 
     Widget body = Container(
       width: width,
@@ -66,20 +58,16 @@ class StitchGlassCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.30)
-                : Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 40,
             spreadRadius: -10,
             offset: const Offset(0, 20),
           ),
-          BoxShadow(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.10)
-                : Colors.white,
+          const BoxShadow(
+            color: Colors.white,
             blurRadius: 2,
             spreadRadius: 0,
-            offset: const Offset(0, 1),
+            offset: Offset(0, 1),
           ),
         ],
       ),

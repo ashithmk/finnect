@@ -96,7 +96,7 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   }
 
   void setThemeMode(ThemeMode mode) {
-    state = mode;
+    state = ThemeMode.light;
   }
 }
 

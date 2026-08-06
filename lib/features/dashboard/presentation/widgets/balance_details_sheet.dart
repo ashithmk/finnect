@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/utils/currency_formatter.dart';
-import '../../../../core/widgets/stitch_glass_card.dart';
+import '../../../../core/widgets/finnect_glass_card.dart';
 import '../../../transactions/data/transaction_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
 
@@ -413,7 +413,7 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
               const SizedBox(height: 16),
 
               // Current Net Total Balance Primary Hero Card
-              StitchGlassCard(
+              FinnectGlassCard(
                 borderRadius: BorderRadius.circular(24),
                 padding: const EdgeInsets.all(20),
                 glassColor: isDark
