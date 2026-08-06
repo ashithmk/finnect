@@ -10,6 +10,7 @@ import '../../../../app/utils/extensions.dart';
 import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../../core/widgets/loaders.dart';
+import '../../../../core/widgets/stitch_glass_card.dart';
 import '../../../transactions/data/transaction_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
 import '../../../transactions/presentation/widgets/add_transaction_sheet.dart';
@@ -61,7 +62,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     }
   }
 
-  List<TransactionModel> _filterExpensesByPeriod(List<TransactionModel> allTransactions) {
+  List<TransactionModel> _filterExpensesByPeriod(
+      List<TransactionModel> allTransactions) {
     final now = DateTime.now();
     return allTransactions.where((tx) {
       if (tx.type != TransactionType.expense) return false;
@@ -131,19 +133,23 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                          color:
+                              theme.colorScheme.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<AnalyticsPeriod>(
                           value: _selectedPeriod,
                           isDense: true,
-                          icon: const Icon(Icons.arrow_drop_down, size: 16, color: Colors.white),
+                          icon: const Icon(Icons.arrow_drop_down,
+                              size: 16, color: Colors.white),
                           dropdownColor: theme.colorScheme.surface,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.primary,
@@ -200,13 +206,19 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                     final sortedCategories = categorySums.entries.toList()
                       ..sort((a, b) => b.value.compareTo(a.value));
 
-                    final topCategory = sortedCategories.isEmpty ? null : sortedCategories.first;
+                    final topCategory = sortedCategories.isEmpty
+                        ? null
+                        : sortedCategories.first;
                     final topCategoryName = topCategory?.key ?? 'None';
                     final topCategoryAmount = topCategory?.value ?? 0.0;
-                    final topPercentage = (totalExpense > 0 && topCategoryAmount > 0)
-                        ? (topCategoryAmount / totalExpense * 100).toStringAsFixed(1)
-                        : '0.0';
-                    final avgExpense = expenses.isNotEmpty ? totalExpense / expenses.length : 0.0;
+                    final topPercentage =
+                        (totalExpense > 0 && topCategoryAmount > 0)
+                            ? (topCategoryAmount / totalExpense * 100)
+                                .toStringAsFixed(1)
+                            : '0.0';
+                    final avgExpense = expenses.isNotEmpty
+                        ? totalExpense / expenses.length
+                        : 0.0;
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,7 +238,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                           children: [
                             Expanded(
                               child: _MetricCard(
-                                label: 'Total Spent (${_getPeriodLabel(_selectedPeriod)})',
+                                label:
+                                    'Total Spent (${_getPeriodLabel(_selectedPeriod)})',
                                 value: currency.formatCompact(totalExpense),
                                 icon: Icons.account_balance_wallet_outlined,
                                 color: Colors.redAccent,
@@ -260,14 +273,19 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                             padding: const EdgeInsets.all(AppSizes.md),
                             child: Column(
                               children: [
-                                for (int i = 0; i < sortedCategories.length; i++) ...[
+                                for (int i = 0;
+                                    i < sortedCategories.length;
+                                    i++) ...[
                                   _CategoryProgressTile(
                                     categoryName: sortedCategories[i].key,
                                     amount: sortedCategories[i].value,
                                     percentage: totalExpense > 0
-                                        ? (sortedCategories[i].value / totalExpense).clamp(0.0, 1.0)
+                                        ? (sortedCategories[i].value /
+                                                totalExpense)
+                                            .clamp(0.0, 1.0)
                                         : 0.0,
-                                    icon: _getCategoryIcon(sortedCategories[i].key),
+                                    icon: _getCategoryIcon(
+                                        sortedCategories[i].key),
                                     color: _getCategoryColor(
                                         sortedCategories[i].key, context),
                                     currency: currency,
@@ -314,61 +332,83 @@ class _SpendingBehaviorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = context.colors;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSizes.lg),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        border: Border.all(
-          color: scheme.primary.withValues(alpha: 0.4),
-        ),
-      ),
+    return StitchGlassCard(
+      isDarkGlass: true,
+      glassColor: const Color(0xFF0F172A).withValues(alpha: 0.80),
+      borderColor: Colors.white.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.lightbulb_outline,
-                color: scheme.primary,
-                size: 22,
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.20),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.lightbulb_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-              const SizedBox(width: AppSizes.xs),
-              Text(
-                'Spending Behavior Insight ($periodLabel)',
-                style: context.textStyles.labelLarge?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Insight',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Your spending on $topCategoryName is higher in $periodLabel (${currency.format(topCategoryAmount)}), accounting for $topPercentage% of your total expenses.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.80),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSizes.sm),
-          RichText(
-            text: TextSpan(
-              style: context.textStyles.bodyMedium?.copyWith(
-                color: scheme.onSurface,
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 4,
+                shadowColor: Colors.black.withValues(alpha: 0.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9999),
+                ),
               ),
-              children: [
-                const TextSpan(text: 'Your highest expenditure is on '),
-                TextSpan(
-                  text: topCategoryName,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              child: const Text(
+                'Review Budget',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
-                TextSpan(
-                  text: ' (${currency.format(topCategoryAmount)}), accounting for ',
-                ),
-                TextSpan(
-                  text: '$topPercentage%',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: scheme.primary,
-                  ),
-                ),
-                const TextSpan(text: ' of your total spending.'),
-              ],
+              ),
             ),
           ),
         ],

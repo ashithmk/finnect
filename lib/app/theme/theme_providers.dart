@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Curated dual-color theme presets combining primary + accent gradient pairs.
 enum AppThemePreset {
   authKitIndigoViolet, // #6967FB Royal Indigo + #9B51E0 Electric Violet
-  cyberVoltEmerald,    // #D5FF40 Cyber Lime + #10B981 Neon Emerald
-  sapphireCyan,        // #3B82F6 Sapphire Blue + #06B6D4 Cyan Glow
-  midnightCrimson,     // #185DF1 Midnight Blue + #EC4899 Crimson Pink
-  sunsetAmber,         // #F43F5E Sunset Rose + #F59E0B Amber Gold
+  cyberVoltEmerald, // #D5FF40 Cyber Lime + #10B981 Neon Emerald
+  sapphireCyan, // #3B82F6 Sapphire Blue + #06B6D4 Cyan Glow
+  midnightCrimson, // #185DF1 Midnight Blue + #EC4899 Crimson Pink
+  sunsetAmber, // #F43F5E Sunset Rose + #F59E0B Amber Gold
 }
 
 extension AppThemePresetX on AppThemePreset {
@@ -25,8 +25,6 @@ extension AppThemePresetX on AppThemePreset {
         return 'Sunset & Amber Gold';
     }
   }
-
-
 
   Color get primaryColor {
     switch (this) {
@@ -88,12 +86,13 @@ class ThemePresetNotifier extends Notifier<AppThemePreset> {
 }
 
 final themePresetProvider =
-    NotifierProvider<ThemePresetNotifier, AppThemePreset>(ThemePresetNotifier.new);
+    NotifierProvider<ThemePresetNotifier, AppThemePreset>(
+        ThemePresetNotifier.new);
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
-    return ThemeMode.system;
+    return ThemeMode.light;
   }
 
   void setThemeMode(ThemeMode mode) {

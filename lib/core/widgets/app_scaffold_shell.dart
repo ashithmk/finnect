@@ -4,31 +4,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/constants/app_sizes.dart';
 import '../../app/constants/app_strings.dart';
-import '../../app/utils/extensions.dart';
 import '../../features/transactions/domain/transaction_model.dart';
 import '../../features/transactions/presentation/widgets/add_transaction_sheet.dart';
 import '../providers/ui_providers.dart';
 import 'finnect_3d_background.dart';
 
-/// Floating 3D Aero Glass Capsule Navigation Bar matching modern pill UI mockups.
+/// Floating capsule navigation bar 1:1 matching the reference mockup image:
+/// - Full rounded pill capsule: borderRadius 9999
+/// - Background: rgba(255, 255, 255, 0.92) with 20px blur & 1px white border
+/// - Active Tab: Solid dark charcoal capsule (#1A1C23 / #000000) with white icon and text label
+/// - Inactive Tabs: Subtle circular icon buttons
 class AppScaffoldShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const AppScaffoldShell({super.key, required this.navigationShell});
 
   static const List<_NavItem> _items = [
-    _NavItem(icon: Icons.home_rounded, selectedIcon: Icons.home_rounded, label: AppStrings.navDashboard),
     _NavItem(
-      icon: Icons.receipt_long_rounded,
+        icon: Icons.explore_outlined,
+        selectedIcon: Icons.explore_rounded,
+        label: AppStrings.navDashboard),
+    _NavItem(
+      icon: Icons.receipt_long_outlined,
       selectedIcon: Icons.receipt_long_rounded,
       label: AppStrings.navTransactions,
     ),
     _NavItem(
-      icon: Icons.pie_chart_rounded,
-      selectedIcon: Icons.pie_chart_rounded,
-      label: AppStrings.navAnalytics,
+      icon: Icons.pie_chart_outline_rounded,
+      selectedIcon: Icons.insights_rounded,
+      label: 'Stats',
     ),
-    _NavItem(icon: Icons.person_rounded, selectedIcon: Icons.person_rounded, label: AppStrings.navProfile),
+    _NavItem(
+        icon: Icons.person_outline_rounded,
+        selectedIcon: Icons.person_rounded,
+        label: AppStrings.navProfile),
   ];
 
   void _onTap(int branchIndex) {
@@ -44,7 +53,8 @@ class AppScaffoldShell extends ConsumerWidget {
       ref: ref,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
       ),
       builder: (sheetContext) => const AddTransactionSheet(
         initialType: TransactionType.expense,
@@ -61,31 +71,8 @@ class AppScaffoldShell extends ConsumerWidget {
     final isSheetOpen = ref.watch(isBottomSheetOpenProvider);
     final mediaQuery = MediaQuery.of(context);
 
-    final glassGradient = isDark
-        ? LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF23283B).withValues(alpha: 0.85),
-              const Color(0xFF0E1322).withValues(alpha: 0.90),
-            ],
-          )
-        : LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withValues(alpha: 0.90),
-              const Color(0xFFEBF1FA).withValues(alpha: 0.85),
-            ],
-          );
-
-    final glassBorderColor = isDark
-        ? Colors.white.withValues(alpha: 0.22)
-        : Colors.white.withValues(alpha: 0.75);
-
-    final bottomPadding = mediaQuery.padding.bottom > 0
-        ? mediaQuery.padding.bottom + 8.0
-        : 16.0;
+    final bottomPadding =
+        mediaQuery.padding.bottom > 0 ? mediaQuery.padding.bottom + 12.0 : 20.0;
 
     return Finnect3DBackground(
       child: Scaffold(
@@ -93,51 +80,58 @@ class AppScaffoldShell extends ConsumerWidget {
         resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
-            // 1. Fullscreen Screen Body extending 100% to bottom edge
+            // 1. Fullscreen Body
             Positioned.fill(
               child: navigationShell,
             ),
 
-            // 2. Floating 3D Capsule Navigation Bar floating directly over 3D background
-            // Hidden completely whenever keyboard is open OR any modal bottom sheet is open.
+            // 2. Floating Capsule Navigation Bar matching mockup
             if (!isKeyboardOpen && !isSheetOpen)
               Positioned(
-                left: 16.0,
-                right: 16.0,
+                left: 20.0,
+                right: 20.0,
                 bottom: bottomPadding,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(36.0),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                    child: Container(
-                      height: 72,
-                      decoration: BoxDecoration(
-                        gradient: glassGradient,
-                        borderRadius: BorderRadius.circular(36.0),
-                        border: Border.all(
-                          color: glassBorderColor,
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 380),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(9999),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          height: 64,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.black.withValues(alpha: 0.50)
-                                : theme.colorScheme.primary.withValues(alpha: 0.15),
-                            blurRadius: 24,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 8),
+                                ? const Color(0xFF252830).withValues(alpha: 0.92)
+                                : Colors.white.withValues(alpha: 0.92),
+                            borderRadius: BorderRadius.circular(9999),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : Colors.white,
+                              width: 1.0,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 35,
+                                spreadRadius: 0,
+                                offset: const Offset(0, 15),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(child: _buildTabItem(context, 0)),
-                          Expanded(child: _buildTabItem(context, 1)),
-                          _buildCenterAddButton(context, ref),
-                          Expanded(child: _buildTabItem(context, 2)),
-                          Expanded(child: _buildTabItem(context, 3)),
-                        ],
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildTabItem(context, 0),
+                              _buildTabItem(context, 1),
+                              _buildCenterAddButton(context, ref),
+                              _buildTabItem(context, 2),
+                              _buildTabItem(context, 3),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -150,47 +144,27 @@ class AppScaffoldShell extends ConsumerWidget {
   }
 
   Widget _buildCenterAddButton(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.50),
-            blurRadius: 14,
-            spreadRadius: 1,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: () => _showAddTransactionSheet(context, ref),
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.tertiary,
-                ],
-              ),
+    return InkWell(
+      onTap: () => _showAddTransactionSheet(context, ref),
+      borderRadius: BorderRadius.circular(9999),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF1A1C23),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(
-              Icons.add_rounded,
-              size: 26,
-              color: theme.colorScheme.onPrimary,
-            ),
-          ),
+          ],
+        ),
+        child: const Icon(
+          Icons.add_rounded,
+          size: 22,
+          color: Colors.white,
         ),
       ),
     );
@@ -202,57 +176,57 @@ class AppScaffoldShell extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final activeColor = selected
-        ? const Color(0xFF6967FB)
-        : (isDark ? const Color(0xFF64748B) : theme.colorScheme.onSurfaceVariant);
-
-    return InkWell(
-      onTap: () => _onTap(branchIndex),
-      borderRadius: BorderRadius.circular(24),
-      child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedScale(
-                scale: selected ? 1.15 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  selected ? item.selectedIcon : item.icon,
-                  color: activeColor,
-                  size: 22,
-                  shadows: selected
-                      ? [
-                          Shadow(
-                            color: activeColor.withValues(alpha: 0.60),
-                            blurRadius: 10,
-                          ),
-                        ]
-                      : null,
-                ),
+    if (selected) {
+      return InkWell(
+        onTap: () => _onTap(branchIndex),
+        borderRadius: BorderRadius.circular(9999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white : const Color(0xFF1A1C23),
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-              const SizedBox(height: 3),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                item.selectedIcon,
+                color: isDark ? const Color(0xFF1A1C23) : Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 6),
               Text(
                 item.label,
                 style: TextStyle(
-                  color: activeColor,
-                  fontSize: 10,
-                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                  shadows: selected
-                      ? [
-                          Shadow(
-                            color: activeColor.withValues(alpha: 0.40),
-                            blurRadius: 8,
-                          ),
-                        ]
-                      : null,
+                  color: isDark ? const Color(0xFF1A1C23) : Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: () => _onTap(branchIndex),
+      borderRadius: BorderRadius.circular(9999),
+      child: Container(
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
+        child: Icon(
+          item.icon,
+          color: isDark ? Colors.white54 : const Color(0xFF757885),
+          size: 22,
         ),
       ),
     );
@@ -264,5 +238,6 @@ class _NavItem {
   final IconData selectedIcon;
   final String label;
 
-  const _NavItem({required this.icon, required this.selectedIcon, required this.label});
+  const _NavItem(
+      {required this.icon, required this.selectedIcon, required this.label});
 }

@@ -54,7 +54,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Welcome to ${AppStrings.appName}, @$username! Account created 🎉'),
+          content: Text(
+              'Welcome to ${AppStrings.appName}, @$username! Account created 🎉'),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.green,
         ),
@@ -97,9 +98,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSizes.lg, vertical: AppSizes.md),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.lg, vertical: AppSizes.md),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: AppSizes.maxContentWidth),
+                constraints:
+                    const BoxConstraints(maxWidth: AppSizes.maxContentWidth),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -128,7 +131,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Container(
                         padding: const EdgeInsets.all(AppSizes.lg),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1B1C22).withValues(alpha: 0.75),
+                          color:
+                              const Color(0xFF1B1C22).withValues(alpha: 0.75),
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.12),
@@ -149,7 +153,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 labelText: 'Full Name',
-                                prefixIcon: const Icon(Icons.person_outline, color: Colors.blueAccent),
+                                prefixIcon: const Icon(Icons.person_outline,
+                                    color: Colors.blueAccent),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),
@@ -163,8 +168,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 labelText: 'username',
-                                
-                                prefixIcon: const Icon(Icons.alternate_email, color: Colors.blueAccent),
+                                prefixIcon: const Icon(Icons.alternate_email,
+                                    color: Colors.blueAccent),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),
@@ -183,7 +188,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             const SizedBox(height: 4),
                             Padding(
                               padding: const EdgeInsets.only(left: 8.0),
-                              
                             ),
                             const SizedBox(height: AppSizes.md),
                             TextFormField(
@@ -192,7 +196,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 labelText: AppStrings.email,
-                                prefixIcon: const Icon(Icons.email_outlined, color: Colors.blueAccent),
+                                prefixIcon: const Icon(Icons.email_outlined,
+                                    color: Colors.blueAccent),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),
@@ -207,7 +212,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 labelText: AppStrings.password,
-                                prefixIcon: const Icon(Icons.lock_outline, color: Colors.blueAccent),
+                                prefixIcon: const Icon(Icons.lock_outline,
+                                    color: Colors.blueAccent),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),

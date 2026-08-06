@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../app/constants/app_sizes.dart';
 import '../../../../app/utils/currency_formatter.dart';
-import '../../../../core/widgets/aero_glass_container.dart';
+import '../../../../core/widgets/stitch_glass_card.dart';
 import '../../../transactions/data/transaction_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
 
-/// Windows 7 Liquid Glass Modal Bottom Sheet displaying:
+/// Redesigned Balance Details Modal Sheet displaying:
 /// - Current Net Total Balance
 /// - "To Get" (Lent out) & "To Give" (Borrowed) metrics
 /// - Interactive itemized dues cards with `-` (minus got back) and `✓` (tick close account) controls.
@@ -48,20 +48,16 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
         final theme = Theme.of(dialogCtx);
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-            side: BorderSide(
-              color: Colors.white.withValues(alpha: 0.5),
-              width: 1.2,
-            ),
+            borderRadius: BorderRadius.circular(24),
           ),
           backgroundColor: theme.brightness == Brightness.dark
-              ? const Color(0xFF14192E).withValues(alpha: 0.95)
-              : Colors.white.withValues(alpha: 0.95),
+              ? const Color(0xFF252830)
+              : Colors.white,
           title: Row(
             children: [
               const CircleAvatar(
                 radius: 16,
-                backgroundColor: Colors.green,
+                backgroundColor: Color(0xFF005236),
                 child: Icon(Icons.check, size: 18, color: Colors.white),
               ),
               const SizedBox(width: 10),
@@ -86,8 +82,11 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: const Color(0xFF005236),
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9999),
+                ),
               ),
               onPressed: () async {
                 Navigator.of(dialogCtx).pop();
@@ -127,9 +126,10 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
     CurrencyFormatter currency,
   ) {
     final theme = Theme.of(context);
-    final isLend = tx.category.toLowerCase() == 'lend' ||
-        tx.category.toLowerCase() == 'to get';
-    final itemColor = isLend ? Colors.teal : Colors.deepOrange;
+    final isDark = theme.brightness == Brightness.dark;
+    final catLower = tx.category.toLowerCase();
+    final isLend = catLower == 'lend' || catLower == 'to get';
+    final itemColor = isLend ? const Color(0xFF005236) : const Color(0xFFBA1A1A);
     final dateStr = DateFormat.MMMd().format(tx.date);
 
     final originalAmount = tx.amount;
@@ -139,40 +139,56 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
 
     final progressRatio = originalAmount > 0 ? (repaidAmount / originalAmount).clamp(0.0, 1.0) : 1.0;
 
-    return LiquidGlassContainer(
-      margin: const EdgeInsets.only(bottom: AppSizes.md),
-      padding: const EdgeInsets.all(AppSizes.md + 2),
-      borderRadius: BorderRadius.circular(24.0),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : const Color(0xFFF6F7F9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.10)
+              : Colors.white,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: Title, Category Icon, & Total Dues
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: itemColor.withValues(alpha: 0.18),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: itemColor.withValues(alpha: 0.15),
+                ),
                 child: Icon(
-                  isLend ? Icons.call_made : Icons.call_received,
+                  isLend ? Icons.call_made_rounded : Icons.call_received_rounded,
                   size: 16,
                   color: itemColor,
                 ),
               ),
-              const SizedBox(width: AppSizes.sm),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       tx.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF1A1C23),
                       ),
                     ),
                     Text(
                       '${isLend ? "To Get (Lent)" : "To Give (Borrowed)"} · $dateStr',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isDark ? Colors.white54 : const Color(0xFF757885),
                       ),
                     ),
                   ],
@@ -183,16 +199,18 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
                 children: [
                   Text(
                     currency.format(remaining),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: isClosed ? Colors.grey : itemColor,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
+                      color: isClosed ? Colors.grey : itemColor,
                     ),
                   ),
                   if (repaidAmount > 0)
                     Text(
-                      'Got ₹${repaidAmount.toStringAsFixed(0)} / ₹${originalAmount.toStringAsFixed(0)}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      'Got ${currency.format(repaidAmount)} / ${currency.format(originalAmount)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: isDark ? Colors.white54 : const Color(0xFF757885),
                       ),
                     ),
                 ],
@@ -200,9 +218,8 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
             ],
           ),
 
-          // Repayment Progress Bar (if active and partially repaid)
           if (!isClosed && originalAmount > 0) ...[
-            const SizedBox(height: AppSizes.sm),
+            const SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
@@ -214,9 +231,8 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
             ),
           ],
 
-          const SizedBox(height: AppSizes.sm),
+          const SizedBox(height: 12),
 
-          // Bottom Action Controls Bar: Minus (-) Got Back & Tick (✓) Close Account
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -224,20 +240,20 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.15),
+                    color: const Color(0xFF005236).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
+                    border: Border.all(color: const Color(0xFF005236).withValues(alpha: 0.4)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, size: 14, color: Colors.green),
+                      Icon(Icons.check_circle, size: 14, color: Color(0xFF005236)),
                       SizedBox(width: 4),
                       Text(
                         'Account Closed',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.green,
+                          color: Color(0xFF005236),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -247,25 +263,24 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
               else
                 Text(
                   repaidAmount > 0
-                      ? 'Remaining: ₹${remaining.toStringAsFixed(2)}'
-                      : 'Total: ₹${originalAmount.toStringAsFixed(2)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
+                      ? 'Remaining: ${currency.format(remaining)}'
+                      : 'Total: ${currency.format(originalAmount)}',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: isDark ? Colors.white70 : const Color(0xFF757885),
                   ),
                 ),
 
-              // Interactive Icons Row: (-) minus and (✓) tick mark
               if (!isClosed)
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Minus (-) Icon Button: Got back money
                     InkWell(
                       onTap: () => _openRepaymentDialog(context, ref, tx, isLend),
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.all(9),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.amber.withValues(alpha: 0.20),
@@ -273,46 +288,33 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
                             color: Colors.amber.withValues(alpha: 0.60),
                             width: 1.2,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.amber.withValues(alpha: 0.30),
-                              blurRadius: 8,
-                            ),
-                          ],
                         ),
                         child: const Icon(
-                          Icons.remove,
-                          size: 18,
+                          Icons.remove_rounded,
+                          size: 16,
                           color: Colors.amber,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
 
-                    // Tick (✓) Icon Button: Close Account
                     InkWell(
                       onTap: () => _openCloseAccountDialog(context, ref, tx, isLend),
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.all(9),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.green.withValues(alpha: 0.20),
+                          color: const Color(0xFF005236).withValues(alpha: 0.20),
                           border: Border.all(
-                            color: Colors.green.withValues(alpha: 0.60),
+                            color: const Color(0xFF005236).withValues(alpha: 0.60),
                             width: 1.2,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.withValues(alpha: 0.30),
-                              blurRadius: 8,
-                            ),
-                          ],
                         ),
                         child: const Icon(
-                          Icons.check,
-                          size: 18,
-                          color: Colors.green,
+                          Icons.check_rounded,
+                          size: 16,
+                          color: Color(0xFF005236),
                         ),
                       ),
                     ),
@@ -330,6 +332,7 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
     final currency = CurrencyFormatter();
     final summary = ref.watch(dashboardSummaryProvider);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     final safeBalance = (summary.totalBalance.isNaN || summary.totalBalance < 0)
         ? 0.0
@@ -337,7 +340,6 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
     final safeToGet = (summary.toGet.isNaN || summary.toGet < 0) ? 0.0 : summary.toGet;
     final safeToGive = (summary.toGive.isNaN || summary.toGive < 0) ? 0.0 : summary.toGive;
 
-    // Filter items based on tab selection
     final allLendBorrow = summary.lendBorrowTransactions;
     final activeLend = allLendBorrow
         .where((tx) =>
@@ -368,207 +370,208 @@ class _BalanceDetailsSheetState extends ConsumerState<BalanceDetailsSheet> {
         break;
     }
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Sheet Header with Windows 7 Aero Glass styling
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2028) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Balance & Dues',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF1A1C23),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Current Net Total Balance Primary Hero Card
+              StitchGlassCard(
+                borderRadius: BorderRadius.circular(24),
+                padding: const EdgeInsets.all(20),
+                glassColor: isDark
+                    ? const Color(0xFF252830)
+                    : const Color(0xFF1A1C23),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                        border: Border.all(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.account_balance_wallet,
-                        color: theme.colorScheme.primary,
-                        size: 20,
+                    Text(
+                      'Current Net Total Balance',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.white70,
                       ),
                     ),
-                    const SizedBox(width: AppSizes.sm),
+                    const SizedBox(height: 6),
                     Text(
-                      'Balance & Dues',
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      currency.format(safeBalance),
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSizes.md),
-
-            // Current Net Total Balance Primary Windows 7 Aero Card
-            AeroGlassContainer(
-              padding: const EdgeInsets.all(AppSizes.lg),
-              borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF031130), // Deep Midnight Navy
-                  Color(0xFF185DF1), // Electric Sapphire Blue
-                  Color(0xFF0A2B7A), // Deep Blue Accent
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 16),
+
+              // Dues Metrics Grid: "To Get" & "To Give"
+              Row(
                 children: [
-                  Text(
-                    'Current Net Total Balance',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF005236).withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF005236).withValues(alpha: 0.30),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 10,
+                                backgroundColor: Color(0xFF005236),
+                                child: Icon(Icons.call_made_rounded, size: 10, color: Colors.white),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'To Get',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: const Color(0xFF005236),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            currency.format(safeToGet),
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              color: const Color(0xFF005236),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    currency.format(safeBalance),
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      shadows: const [
-                        Shadow(
-                          color: Colors.black26,
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFBA1A1A).withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFFBA1A1A).withValues(alpha: 0.30),
                         ),
-                      ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 10,
+                                backgroundColor: Color(0xFFBA1A1A),
+                                child: Icon(Icons.call_received_rounded, size: 10, color: Colors.white),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'To Give',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: const Color(0xFFBA1A1A),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            currency.format(safeToGive),
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              color: const Color(0xFFBA1A1A),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: AppSizes.md),
+              const SizedBox(height: 20),
 
-            // Dues Metrics Grid: "To Get" & "To Give"
-            Row(
-              children: [
-                Expanded(
-                  child: AeroGlassContainer(
-                    padding: const EdgeInsets.all(AppSizes.md),
-                    glassColor: Colors.teal.withValues(alpha: 0.15),
-                    borderColor: Colors.teal.withValues(alpha: 0.45),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const CircleAvatar(
-                              radius: 12,
-                              backgroundColor: Colors.teal,
-                              child: Icon(Icons.call_made, size: 12, color: Colors.white),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'To Get',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: Colors.teal,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSizes.xs),
-                        Text(
-                          currency.format(safeToGet),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: Colors.teal,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSizes.sm),
-                Expanded(
-                  child: AeroGlassContainer(
-                    padding: const EdgeInsets.all(AppSizes.md),
-                    glassColor: Colors.deepOrange.withValues(alpha: 0.15),
-                    borderColor: Colors.deepOrange.withValues(alpha: 0.45),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const CircleAvatar(
-                              radius: 12,
-                              backgroundColor: Colors.deepOrange,
-                              child: Icon(Icons.call_received, size: 12, color: Colors.white),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'To Give',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: Colors.deepOrange,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSizes.xs),
-                        Text(
-                          currency.format(safeToGive),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: Colors.deepOrange,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Tab Filter Bar for Dues List
-            SegmentedButton<int>(
-              segments: const [
-                ButtonSegment<int>(value: 0, label: Text('All')),
-                ButtonSegment<int>(value: 1, label: Text('To Get')),
-                ButtonSegment<int>(value: 2, label: Text('To Give')),
-                ButtonSegment<int>(value: 3, label: Text('Closed')),
-              ],
-              selected: {_selectedFilterIndex},
-              onSelectionChanged: (set) {
-                setState(() => _selectedFilterIndex = set.first);
-              },
-            ),
-            const SizedBox(height: AppSizes.md),
-
-            // Itemized Lend / Borrow Transaction List
-            if (displayedItems.isEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSizes.xl),
-                child: Text(
-                  'No items found under this filter.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+              // Tab Filter Bar for Dues List
+              SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment<int>(value: 0, label: Text('All')),
+                  ButtonSegment<int>(value: 1, label: Text('To Get')),
+                  ButtonSegment<int>(value: 2, label: Text('To Give')),
+                  ButtonSegment<int>(value: 3, label: Text('Closed')),
+                ],
+                selected: {_selectedFilterIndex},
+                onSelectionChanged: (set) {
+                  setState(() => _selectedFilterIndex = set.first);
+                },
               ),
-            ] else ...[
-              for (final tx in displayedItems)
-                _buildLendBorrowTile(context, ref, tx, currency),
+              const SizedBox(height: 16),
+
+              if (displayedItems.isEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Text(
+                    'No items found under this filter.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: isDark ? Colors.white54 : const Color(0xFF757885),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                for (final tx in displayedItems)
+                  _buildLendBorrowTile(context, ref, tx, currency),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -607,37 +610,36 @@ class _RepaymentDialogState extends ConsumerState<_RepaymentDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final remaining = widget.tx.remainingAmount;
     final isLend = widget.isLend;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        side: BorderSide(
-          color: Colors.white.withValues(alpha: 0.5),
-          width: 1.2,
-        ),
+        borderRadius: BorderRadius.circular(24),
       ),
-      backgroundColor: theme.brightness == Brightness.dark
-          ? const Color(0xFF14192E).withValues(alpha: 0.95)
-          : Colors.white.withValues(alpha: 0.95),
+      backgroundColor: isDark ? const Color(0xFF252830) : Colors.white,
       title: Row(
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundColor: isLend ? Colors.teal.withValues(alpha: 0.2) : Colors.deepOrange.withValues(alpha: 0.2),
+            backgroundColor: isLend
+                ? const Color(0xFF005236).withValues(alpha: 0.2)
+                : const Color(0xFFBA1A1A).withValues(alpha: 0.2),
             child: Icon(
               Icons.remove,
               size: 18,
-              color: isLend ? Colors.teal : Colors.deepOrange,
+              color: isLend ? const Color(0xFF005236) : const Color(0xFFBA1A1A),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               isLend ? 'Money Got Back' : 'Paid Dues Back',
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: GoogleFonts.inter(
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF1A1C23),
               ),
             ),
           ),
@@ -651,16 +653,18 @@ class _RepaymentDialogState extends ConsumerState<_RepaymentDialog> {
           children: [
             Text(
               '${widget.tx.title} · Outstanding: ₹${remaining.toStringAsFixed(2)}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: isDark ? Colors.white60 : const Color(0xFF757885),
               ),
             ),
-            const SizedBox(height: AppSizes.md),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _controller,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               autofocus: true,
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: GoogleFonts.inter(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
               decoration: InputDecoration(
@@ -692,8 +696,11 @@ class _RepaymentDialogState extends ConsumerState<_RepaymentDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: isLend ? Colors.teal : Colors.deepOrange,
+            backgroundColor: isLend ? const Color(0xFF005236) : const Color(0xFFBA1A1A),
             foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9999),
+            ),
           ),
           onPressed: () async {
             if (!_formKey.currentState!.validate()) return;

@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/constants/app_sizes.dart';
-import '../../../../app/constants/app_strings.dart';
-import '../../../../app/routes/route_names.dart';
 import '../../../../app/utils/currency_formatter.dart';
-import '../../../../app/utils/extensions.dart';
 import '../../../../core/providers/ui_providers.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
 import '../../../../core/widgets/loaders.dart';
+import '../../../../core/widgets/stitch_glass_card.dart';
 import '../../data/transaction_providers.dart';
 import '../../domain/transaction_model.dart';
 import '../widgets/add_transaction_sheet.dart';
 
-/// History screen with Finnect 3D background, month filter, and daily aggregated summary cards.
+/// Redesigned History Screen strictly adhering to `finnect_design/history_reverted_footer/code.html`.
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
 
@@ -26,7 +24,8 @@ class TransactionsScreen extends ConsumerStatefulWidget {
 class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   String? _selectedMonthKey; // 'yyyy-MM' (e.g. '2026-07')
 
-  Map<String, List<TransactionModel>> _groupTransactions(List<TransactionModel> transactions) {
+  Map<String, List<TransactionModel>> _groupTransactions(
+      List<TransactionModel> transactions) {
     final Map<String, List<TransactionModel>> grouped = {};
     final now = DateTime.now();
 
@@ -34,14 +33,16 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       final date = tx.date;
       String groupKey;
 
-      if (date.year == now.year && date.month == now.month && date.day == now.day) {
-        groupKey = 'Today';
+      if (date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day) {
+        groupKey = 'TODAY, ${DateFormat('MMM d').format(date).toUpperCase()}';
       } else if (date.year == now.year &&
           date.month == now.month &&
           date.day == now.day - 1) {
-        groupKey = 'Yesterday';
+        groupKey = 'YESTERDAY, ${DateFormat('MMM d').format(date).toUpperCase()}';
       } else {
-        groupKey = DateFormat.yMMMMd().format(date);
+        groupKey = DateFormat('EEEE, MMM d').format(date).toUpperCase();
       }
 
       grouped.putIfAbsent(groupKey, () => []).add(tx);
@@ -54,176 +55,196 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final transactionsAsync = ref.watch(transactionsStreamProvider);
     final currency = CurrencyFormatter();
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final currentMonthKey = DateFormat('yyyy-MM').format(DateTime.now());
 
     return Finnect3DBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text(AppStrings.navTransactions), // 'History'
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: AppSizes.sm),
-              child: TextButton.icon(
-                onPressed: () => context.push(RouteNames.goals),
-                icon: const Icon(Icons.stars, color: Colors.amberAccent, size: 20),
-                label: const Text(
-                  'Goals',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-        body: transactionsAsync.when(
-          data: (allTransactions) {
-            if (allTransactions.isEmpty) {
-              return Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSizes.lg),
-                  child: EmptyState(
-                    icon: Icons.history_outlined,
-                    title: 'No History Yet',
-                    subtitle: 'Tap the + button below or Add Balance on Home to log entries.',
-                    actionLabel: 'Add Expense',
-                    onAction: () {
-                      showAppModalBottomSheet(
-                        context: context,
-                        ref: ref,
-                        builder: (ctx) => const AddTransactionSheet(
-                          initialType: TransactionType.expense,
-                          lockType: true,
-                        ),
-                      );
-                    },
+        body: SafeArea(
+          child: transactionsAsync.when(
+            data: (allTransactions) {
+              if (allTransactions.isEmpty) {
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSizes.lg),
+                    child: EmptyState(
+                      icon: Icons.history_outlined,
+                      title: 'No History Yet',
+                      subtitle:
+                          'Tap the + button below or Add Balance on Home to log entries.',
+                      actionLabel: 'Add Expense',
+                      onAction: () {
+                        showAppModalBottomSheet(
+                          context: context,
+                          ref: ref,
+                          builder: (ctx) => const AddTransactionSheet(
+                            initialType: TransactionType.expense,
+                            lockType: true,
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              );
-            }
+                );
+              }
 
-            // Extract unique months for Month Filter (Current month first, followed by previous months)
-            final Map<String, String> monthOptions = {};
-            monthOptions[currentMonthKey] = DateFormat.yMMMM().format(DateTime.now());
+              final Map<String, String> monthOptions = {};
+              monthOptions[currentMonthKey] =
+                  DateFormat('MMMM').format(DateTime.now()).toUpperCase();
 
-            for (final tx in allTransactions) {
-              final mKey = DateFormat('yyyy-MM').format(tx.date);
-              final mLabel = DateFormat.yMMMM().format(tx.date);
-              monthOptions.putIfAbsent(mKey, () => mLabel);
-            }
+              for (final tx in allTransactions) {
+                final mKey = DateFormat('yyyy-MM').format(tx.date);
+                final mLabel =
+                    DateFormat('MMMM').format(tx.date).toUpperCase();
+                monthOptions.putIfAbsent(mKey, () => mLabel);
+              }
 
-            final activeMonthKey = _selectedMonthKey ?? currentMonthKey;
+              final activeMonthKey = _selectedMonthKey ?? currentMonthKey;
+              final selectedMonthLabel =
+                  monthOptions[activeMonthKey] ?? monthOptions[currentMonthKey] ?? 'THIS MONTH';
 
-            // Filter transactions by selected month
-            final filteredTransactions = allTransactions.where((tx) {
-              final monthKey = DateFormat('yyyy-MM').format(tx.date);
-              return monthKey == activeMonthKey;
-            }).toList();
+              final filteredTransactions = allTransactions.where((tx) {
+                final monthKey = DateFormat('yyyy-MM').format(tx.date);
+                return monthKey == activeMonthKey;
+              }).toList();
 
-            final grouped = _groupTransactions(filteredTransactions);
-            final groupKeys = grouped.keys.toList();
+              final grouped = _groupTransactions(filteredTransactions);
+              final groupKeys = grouped.keys.toList();
 
-            return Column(
-              children: [
-                // Compact Month Selector Dropdown
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.lg, vertical: AppSizes.xs),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Month Selector Header matching code.html lines 156-168
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'History',
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : const Color(0xFF191C1D),
+                            letterSpacing: -0.3,
                           ),
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: monthOptions.containsKey(activeMonthKey) ? activeMonthKey : currentMonthKey,
-                            isDense: true,
-                            icon: const Icon(Icons.arrow_drop_down, size: 16, color: Colors.white),
-                            dropdownColor: theme.colorScheme.surface,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                            ),
-                            items: monthOptions.entries.map((entry) {
-                              final isCurrent = entry.key == currentMonthKey;
-                              return DropdownMenuItem<String>(
-                                value: entry.key,
-                                child: Text(
-                                  isCurrent ? '${entry.value} (Current)' : entry.value,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                        Row(
+                          children: [
+                            PopupMenuButton<String>(
+                              onSelected: (val) {
+                                setState(() => _selectedMonthKey = val);
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              itemBuilder: (ctx) => monthOptions.entries.map((entry) {
+                                final isCurrent = entry.key == currentMonthKey;
+                                return PopupMenuItem<String>(
+                                  value: entry.key,
+                                  child: Text(
+                                    isCurrent ? '${entry.value} (CURRENT)' : entry.value,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: isCurrent
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
                                   ),
+                                );
+                              }).toList(),
+                              child: StitchGlassCard(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                borderRadius: BorderRadius.circular(9999),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      selectedMonthLabel,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.6,
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF191C1D),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.expand_more_rounded,
+                                      size: 18,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF191C1D),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Expanded(
+                    child: filteredTransactions.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No transactions found for $selectedMonthLabel',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDark ? Colors.white60 : const Color(0xFF4C4546),
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(
+                              24,
+                              8,
+                              24,
+                              120,
+                            ),
+                            itemCount: groupKeys.length,
+                            itemBuilder: (ctx, groupIndex) {
+                              final groupKey = groupKeys[groupIndex];
+                              final groupItems = grouped[groupKey] ?? [];
+
+                              double dayTotal = 0.0;
+                              int expenseCount = 0;
+                              for (final item in groupItems) {
+                                if (item.type == TransactionType.income) {
+                                  dayTotal += item.amount;
+                                } else {
+                                  dayTotal -= item.amount;
+                                  expenseCount++;
+                                }
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _DailySummaryExpandableCard(
+                                  groupKey: groupKey,
+                                  dayTotal: dayTotal,
+                                  items: groupItems,
+                                  expenseCount: expenseCount,
+                                  currency: currency,
                                 ),
                               );
-                            }).toList(),
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() => _selectedMonthKey = val);
-                              }
                             },
                           ),
-                        ),
-                      ),
-                    ],
                   ),
-                ),
-
-                Expanded(
-                  child: filteredTransactions.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No transactions found for ${monthOptions[_selectedMonthKey]}',
-                            style: context.textStyles.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSizes.lg,
-                            AppSizes.sm,
-                            AppSizes.lg,
-                            AppSizes.xxl + AppSizes.xl,
-                          ),
-                          itemCount: groupKeys.length,
-                          itemBuilder: (ctx, groupIndex) {
-                            final groupKey = groupKeys[groupIndex];
-                            final groupItems = grouped[groupKey] ?? [];
-
-                            double dayTotal = 0.0;
-                            int expenseCount = 0;
-                            for (final item in groupItems) {
-                              if (item.type == TransactionType.income) {
-                                dayTotal += item.amount;
-                              } else {
-                                dayTotal -= item.amount;
-                                expenseCount++;
-                              }
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: AppSizes.md),
-                              child: _DailySummaryExpandableCard(
-                                groupKey: groupKey,
-                                dayTotal: dayTotal,
-                                items: groupItems,
-                                expenseCount: expenseCount,
-                                currency: currency,
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            );
-          },
-          loading: () => const AppLoader(),
-          error: (err, stack) => Center(
-            child: Text('Error loading history: $err'),
+                ],
+              );
+            },
+            loading: () => const AppLoader(),
+            error: (err, stack) => Center(
+              child: Text('Error loading history: $err'),
+            ),
           ),
         ),
       ),
@@ -231,7 +252,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 }
 
-/// Expandable Daily Summary Card. Displays day name + net day total, and expands to reveal individual items.
+/// 1:1 Expandable Daily Summary Glass Card matching code.html lines 171-261.
 class _DailySummaryExpandableCard extends StatefulWidget {
   final String groupKey;
   final double dayTotal;
@@ -248,127 +269,110 @@ class _DailySummaryExpandableCard extends StatefulWidget {
   });
 
   @override
-  State<_DailySummaryExpandableCard> createState() => _DailySummaryExpandableCardState();
+  State<_DailySummaryExpandableCard> createState() =>
+      _DailySummaryExpandableCardState();
 }
 
-class _DailySummaryExpandableCardState extends State<_DailySummaryExpandableCard> {
-  // Expand today's card by default
+class _DailySummaryExpandableCardState
+    extends State<_DailySummaryExpandableCard> {
   late bool _isExpanded;
 
   @override
   void initState() {
     super.initState();
-    _isExpanded = widget.groupKey == 'Today';
+    _isExpanded = widget.groupKey.startsWith('TODAY');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return StitchGlassCard(
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(24),
       child: Column(
         children: [
-          // Daily Summary Header Row (Tap to expand/collapse)
+          // Daily Summary Header Row matching code.html lines 173-179
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSizes.md),
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              decoration: BoxDecoration(
+                border: _isExpanded
+                    ? Border(
+                        bottom: BorderSide(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.1)
+                              : Colors.white.withValues(alpha: 0.4),
+                          width: 1,
+                        ),
+                      )
+                    : null,
+              ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: theme.colorScheme.primaryContainer,
-                    child: Icon(
-                      Icons.calendar_today,
-                      size: AppSizes.iconSm,
-                      color: theme.colorScheme.primary,
-                    ),
+                  Icon(
+                    _isExpanded
+                        ? Icons.expand_more_rounded
+                        : Icons.chevron_right_rounded,
+                    size: 22,
+                    color: isDark ? Colors.white : const Color(0xFF191C1D),
                   ),
-                  const SizedBox(width: AppSizes.md),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.groupKey,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${widget.items.length} ${widget.items.length == 1 ? "entry" : "entries"}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      widget.groupKey,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.6,
+                        color: isDark ? Colors.white : const Color(0xFF191C1D),
+                      ),
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        widget.currency.format(widget.dayTotal.abs()),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: widget.dayTotal >= 0 ? Colors.green : Colors.red,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _isExpanded ? 'Hide Details' : 'View Expenses',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                          Icon(
-                            _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                            size: 16,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ],
-                      ),
-                    ],
+                  Text(
+                    '${widget.dayTotal < 0 ? "-" : "+"}${widget.currency.format(widget.dayTotal.abs())}',
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: widget.dayTotal < 0
+                          ? (isDark ? Colors.white : const Color(0xFF191C1D))
+                          : const Color(0xFF005236),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
 
-          // Expanded Items List
-          if (_isExpanded) ...[
-            const Divider(height: 1),
-            Container(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          // Expanded Items List matching code.html lines 181-260
+          if (_isExpanded)
+            Padding(
+              padding: const EdgeInsets.all(8),
               child: Column(
                 children: [
-                  for (int i = 0; i < widget.items.length; i++) ...[
-                    _TransactionListTile(
+                  for (int i = 0; i < widget.items.length; i++)
+                    _TransactionItemTile(
                       transaction: widget.items[i],
                       currency: widget.currency,
                     ),
-                    if (i < widget.items.length - 1)
-                      const Divider(height: 1, indent: 72),
-                  ],
                 ],
               ),
             ),
-          ],
         ],
       ),
     );
   }
 }
 
-class _TransactionListTile extends ConsumerWidget {
+/// 1:1 Transaction Item Tile matching code.html lines 183-213 & 228-260.
+class _TransactionItemTile extends ConsumerWidget {
   final TransactionModel transaction;
   final CurrencyFormatter currency;
 
-  const _TransactionListTile({
+  const _TransactionItemTile({
     required this.transaction,
     required this.currency,
   });
@@ -378,7 +382,8 @@ class _TransactionListTile extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Entry?'),
-        content: Text('Are you sure you want to delete "${transaction.title}"? Your total balance will be recalculated.'),
+        content: Text(
+            'Are you sure you want to delete "${transaction.title}"? Your total balance will be recalculated.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -406,51 +411,131 @@ class _TransactionListTile extends ConsumerWidget {
     );
   }
 
+  IconData _getCategoryIcon(String category) {
+    final lower = category.toLowerCase();
+    if (lower.contains('grocer') || lower.contains('shop') || lower.contains('food')) {
+      return Icons.shopping_bag_outlined;
+    }
+    if (lower.contains('cafe') || lower.contains('din') || lower.contains('restau')) {
+      return Icons.local_cafe_outlined;
+    }
+    if (lower.contains('salary') || lower.contains('income') || lower.contains('deposit')) {
+      return Icons.arrow_downward_rounded;
+    }
+    if (lower.contains('car') || lower.contains('uber') || lower.contains('transp')) {
+      return Icons.directions_car_outlined;
+    }
+    return Icons.receipt_long_outlined;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isIncome = transaction.type == TransactionType.income;
-    final color = isIncome ? Colors.green : Colors.red;
-    final icon = isIncome ? Icons.arrow_downward : Icons.arrow_upward;
     final timeStr = DateFormat.jm().format(transaction.date);
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: 2),
-      leading: CircleAvatar(
-        radius: 18,
-        backgroundColor: color.withValues(alpha: 0.12),
-        child: Icon(icon, size: AppSizes.iconSm, color: color),
-      ),
-      title: Text(
-        transaction.title,
-        style: context.textStyles.bodyLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      subtitle: Text(
-        '${transaction.category} · $timeStr',
-        style: context.textStyles.bodySmall?.copyWith(
-          color: context.colors.onSurfaceVariant,
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            currency.format(transaction.amount.abs()),
-            style: context.textStyles.titleSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onLongPress: () => _confirmDelete(context, ref),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
           ),
-          InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => _confirmDelete(context, ref),
-            child: const Padding(
-              padding: EdgeInsets.all(6.0),
-              child: Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
-            ),
+          child: Row(
+            children: [
+              // Glass Icon Pill (.glass-icon: 48x48 rounded full with 8px blur and 1px white border)
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isIncome
+                      ? const Color(0xFF4EDEA3).withValues(alpha: 0.20)
+                      : (isDark
+                          ? Colors.white.withValues(alpha: 0.10)
+                          : Colors.white.withValues(alpha: 0.60)),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.20)
+                        : Colors.white.withValues(alpha: 0.80),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1F2687).withValues(alpha: 0.05),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _getCategoryIcon(transaction.category),
+                  size: 22,
+                  color: isIncome
+                      ? const Color(0xFF005236)
+                      : (isDark ? Colors.white : const Color(0xFF191C1D)),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : const Color(0xFF191C1D),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      transaction.category,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: isDark ? Colors.white54 : const Color(0xFF4C4546),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isIncome ? "+" : "-"}${currency.format(transaction.amount.abs())}',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isIncome
+                          ? const Color(0xFF005236)
+                          : (isDark ? Colors.white : const Color(0xFF191C1D)),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    timeStr,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: isDark ? Colors.white54 : const Color(0xFF4C4546),
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                color: isDark ? Colors.white38 : Colors.grey,
+                onPressed: () => _confirmDelete(context, ref),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

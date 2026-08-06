@@ -50,7 +50,7 @@ class DashboardSummary {
 /// Provider computing financial summary metrics dynamically from database transactions.
 final dashboardSummaryProvider = Provider<DashboardSummary>((ref) {
   final transactionsAsync = ref.watch(transactionsStreamProvider);
-  final transactions = transactionsAsync.value ?? [];
+  final transactions = transactionsAsync.asData?.value ?? [];
   final now = DateTime.now();
   final sevenDaysAgo = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 7));
 
@@ -105,11 +105,11 @@ final dashboardSummaryProvider = Provider<DashboardSummary>((ref) {
     }
   }
 
-  // Net Total Balance = Balance Income - Savings Transfers - Total Expenses
-  final netBalance = balanceIncome - savingsIncome - totalExpense;
-  final availableTotalBalance = netBalance < 0 ? 0.0 : netBalance;
+  // Net Total Balance = Total Income - Total Expense
+  final netBalance = balanceIncome - totalExpense;
+  final availableTotalBalance = netBalance;
 
-  // Total Savings = Accumulated Savings Transfers
+  // Total Savings = Accumulated Savings
   final totalSavings = savingsIncome < 0 ? 0.0 : savingsIncome;
 
   // Filter recent transactions to the past 7 days (within a week)

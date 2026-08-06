@@ -16,13 +16,15 @@ import '../widgets/add_goal_sheet.dart';
 class GoalsScreen extends ConsumerWidget {
   const GoalsScreen({super.key});
 
-  void _showAddGoalSheet(BuildContext context, WidgetRef ref, [GoalModel? existingGoal]) {
+  void _showAddGoalSheet(BuildContext context, WidgetRef ref,
+      [GoalModel? existingGoal]) {
     showAppModalBottomSheet(
       context: context,
       ref: ref,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
       ),
       builder: (ctx) => AddGoalSheet(existingGoal: existingGoal),
     );
@@ -35,7 +37,9 @@ class GoalsScreen extends ConsumerWidget {
     double totalSavings,
   ) {
     for (final goal in goals) {
-      if (!goal.isPurchased && totalSavings >= goal.targetPrice && !goal.notified) {
+      if (!goal.isPurchased &&
+          totalSavings >= goal.targetPrice &&
+          !goal.notified) {
         // Mark as notified so it triggers only once
         final updated = goal.copyWith(notified: true);
         ref.read(goalControllerProvider.notifier).updateGoal(updated);
@@ -58,7 +62,8 @@ class GoalsScreen extends ConsumerWidget {
                             '🎉 Goal Achieved!',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          Text('You now have enough savings to buy your "${goal.title}".'),
+                          Text(
+                              'You now have enough savings to buy your "${goal.title}".'),
                         ],
                       ),
                     ),
@@ -96,7 +101,8 @@ class GoalsScreen extends ConsumerWidget {
         ),
         body: goalsAsync.when(
           data: (goals) {
-            _checkGoalAchievementNotifications(context, ref, goals, totalSavings);
+            _checkGoalAchievementNotifications(
+                context, ref, goals, totalSavings);
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(
@@ -277,7 +283,9 @@ class _GoalCard extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               Navigator.of(dialogContext).pop();
-              await ref.read(goalControllerProvider.notifier).deleteGoal(goal.id);
+              await ref
+                  .read(goalControllerProvider.notifier)
+                  .deleteGoal(goal.id);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -303,9 +311,11 @@ class _GoalCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isAchieved = totalSavings >= goal.targetPrice;
-    final double rawProgress = goal.targetPrice > 0 ? (totalSavings / goal.targetPrice) : 0.0;
+    final double rawProgress =
+        goal.targetPrice > 0 ? (totalSavings / goal.targetPrice) : 0.0;
     final double progress = rawProgress.clamp(0.0, 1.0);
-    final double remaining = (goal.targetPrice - totalSavings).clamp(0.0, double.infinity);
+    final double remaining =
+        (goal.targetPrice - totalSavings).clamp(0.0, double.infinity);
     final pctInt = (progress * 100).toInt();
 
     return Card(
@@ -324,7 +334,8 @@ class _GoalCard extends ConsumerWidget {
                       : theme.colorScheme.primaryContainer,
                   child: Icon(
                     isAchieved ? Icons.stars : Icons.card_giftcard,
-                    color: isAchieved ? Colors.green : theme.colorScheme.primary,
+                    color:
+                        isAchieved ? Colors.green : theme.colorScheme.primary,
                     size: 26,
                   ),
                 ),
@@ -340,7 +351,9 @@ class _GoalCard extends ConsumerWidget {
                               goal.title,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                decoration: goal.isPurchased ? TextDecoration.lineThrough : null,
+                                decoration: goal.isPurchased
+                                    ? TextDecoration.lineThrough
+                                    : null,
                               ),
                             ),
                           ),
@@ -351,7 +364,8 @@ class _GoalCard extends ConsumerWidget {
                             )
                           else if (isAchieved)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.green.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
@@ -367,10 +381,11 @@ class _GoalCard extends ConsumerWidget {
                             ),
                         ],
                       ),
-                      if (goal.description != null && goal.description!.isNotEmpty) ...[
+                      if (goal.description != null &&
+                          goal.description!.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
-                          goal.description!,
+                          goal.description ?? '',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -396,10 +411,16 @@ class _GoalCard extends ConsumerWidget {
                   itemBuilder: (ctx) => [
                     PopupMenuItem(
                       value: 'purchased',
-                      child: Text(goal.isPurchased ? 'Mark as Not Purchased' : 'Mark as Purchased'),
+                      child: Text(goal.isPurchased
+                          ? 'Mark as Not Purchased'
+                          : 'Mark as Purchased'),
                     ),
-                    const PopupMenuItem(value: 'edit', child: Text('Edit Goal')),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete Goal', style: TextStyle(color: Colors.red))),
+                    const PopupMenuItem(
+                        value: 'edit', child: Text('Edit Goal')),
+                    const PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Delete Goal',
+                            style: TextStyle(color: Colors.red))),
                   ],
                 ),
               ],
@@ -418,7 +439,8 @@ class _GoalCard extends ConsumerWidget {
                   '$pctInt%',
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isAchieved ? Colors.green : theme.colorScheme.primary,
+                    color:
+                        isAchieved ? Colors.green : theme.colorScheme.primary,
                   ),
                 ),
               ],
@@ -446,8 +468,11 @@ class _GoalCard extends ConsumerWidget {
                       ? 'You have saved enough for this goal!'
                       : 'Remaining: ${currency.format(remaining)}',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: isAchieved ? Colors.green : theme.colorScheme.onSurfaceVariant,
-                    fontWeight: isAchieved ? FontWeight.bold : FontWeight.normal,
+                    color: isAchieved
+                        ? Colors.green
+                        : theme.colorScheme.onSurfaceVariant,
+                    fontWeight:
+                        isAchieved ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ],

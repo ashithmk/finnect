@@ -113,7 +113,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             children: [
               // 3D Animated Logo with Pulsing Glow Ring
               AnimatedBuilder(
-                animation: Listenable.merge([_mainController, _pulseController]),
+                animation:
+                    Listenable.merge([_mainController, _pulseController]),
                 builder: (context, child) {
                   final pulseValue = 1.0 + (_pulseController.value * 0.08);
 
@@ -129,13 +130,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.4 * _fadeAnimation.value),
+                              color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.4 * _fadeAnimation.value),
                               blurRadius: 36 * pulseValue,
                               spreadRadius: 10 * pulseValue,
                             ),
                             BoxShadow(
-                              color: Colors.green.withValues(alpha: 0.25 * _fadeAnimation.value),
+                              color: Colors.green.withValues(
+                                  alpha: 0.25 * _fadeAnimation.value),
                               blurRadius: 50,
                               spreadRadius: 2,
                             ),

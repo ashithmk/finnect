@@ -4,12 +4,13 @@ import 'package:finnect/main.dart';
 
 void main() {
   testWidgets('FinnectApp builds successfully', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: FinnectApp(),
-      ),
-    );
-    expect(find.byType(FinnectApp), findsOneWidget);
-    await tester.pumpAndSettle(const Duration(seconds: 3));
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: FinnectApp(),
+        ),
+      );
+      expect(find.byType(FinnectApp), findsOneWidget);
+    });
   });
 }

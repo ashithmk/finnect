@@ -638,8 +638,9 @@ class LocalMockAuthRepository implements AuthRepository {
 
   @override
   Future<void> deleteAccount() async {
-    if (_currentUser != null) {
-      sharedMockUsersDb.remove(_currentUser!.uid);
+    final user = _currentUser;
+    if (user != null) {
+      sharedMockUsersDb.remove(user.uid);
       _currentUser = null;
       _authController.add(null);
     }

@@ -22,7 +22,7 @@ final authStateChangesProvider = StreamProvider<AppUser?>((ref) {
 /// Current authenticated user provider.
 final currentUserProvider = Provider<AppUser?>((ref) {
   final authState = ref.watch(authStateChangesProvider);
-  return authState.value ?? ref.watch(authRepositoryProvider).currentUser;
+  return authState.asData?.value ?? ref.watch(authRepositoryProvider).currentUser;
 });
 
 /// State controller for Auth operations (Login, Register, Sign Out).

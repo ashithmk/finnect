@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../app/constants/app_sizes.dart';
-import '../../../../app/constants/app_strings.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../app/theme/theme_providers.dart';
 import '../../../../app/utils/extensions.dart';
 import '../../../../core/providers/app_lock_providers.dart';
-import '../../../../core/services/app_lock_service.dart';
 import '../../../../core/providers/ui_providers.dart';
+import '../../../../core/services/app_lock_service.dart';
 import '../../../../core/widgets/buttons.dart';
 import '../../../../core/widgets/finnect_3d_background.dart';
+import '../../../../core/widgets/stitch_glass_card.dart';
 import '../../../auth/data/auth_providers.dart';
+import '../../../goals/data/goal_providers.dart';
+import '../../../transactions/data/transaction_providers.dart';
 
-
-
-/// Redesigned Profile Screen with top-right Settings.
+/// 1:1 Profile Screen strictly matching the "Profil" reference mockup image:
+/// - Avatar with soft white ring halo centered at top
+/// - Crisp White Liquid Glass Profile Hero Card with Name, Handle, Premium Pill Badge,
+///   3 Soft Stat Boxes (Expenses, Goals, Streak), and Dark Metallic "Kredin Tükendi!" Banner
+/// - Unified Glass Menu Container with rounded action rows
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -49,119 +53,452 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return const SizedBox.shrink();
     }
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final goalsAsync = ref.watch(goalsStreamProvider);
+
+    final int txCount = transactionsAsync.maybeWhen(
+      data: (txs) => txs.length,
+      orElse: () => 0,
+    );
+    final int goalCount = goalsAsync.maybeWhen(
+      data: (gs) => gs.length,
+      orElse: () => 0,
+    );
 
     return Finnect3DBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text(AppStrings.navProfile),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              tooltip: 'Settings',
-              onPressed: () => _openSettingsSheet(context),
-            ),
-            const SizedBox(width: AppSizes.xs),
-          ],
-        ),
-        body: Builder(
-          builder: (scaffoldContext) => ListView(
-            padding: const EdgeInsets.all(AppSizes.lg),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 120),
             children: [
-              // User Header Profile Card
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSizes.lg),
-                  child: Row(
-                    children: [
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 36,
-                            backgroundColor: colorScheme.primaryContainer,
-                            child: Text(
-                              user.displayName.isNotEmpty
-                                  ? user.displayName[0].toUpperCase()
-                                  : 'U',
-                              style: textTheme.headlineSmall?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: InkWell(
-                              onTap: () => _openEditProfileSheet(scaffoldContext),
-                              child: CircleAvatar(
-                                radius: 12,
-                                backgroundColor: colorScheme.primary,
-                                child: const Icon(Icons.edit, size: 12, color: Colors.white),
-                              ),
-                            ),
+              // Header matching mockup lines 177-186
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Profil',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF1A1C23),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => _openSettingsSheet(context),
+                    borderRadius: BorderRadius.circular(9999),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.12)
+                            : Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                      const SizedBox(width: AppSizes.md),
-                      Expanded(
-                        child: Column(
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        size: 20,
+                        color: isDark ? Colors.white : const Color(0xFF1A1C23),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Centered Avatar Ring Halo
+              Center(
+                child: Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark
+                        ? const Color(0xFF252830)
+                        : Colors.white.withValues(alpha: 0.90),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 3.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      user.displayName.isNotEmpty
+                          ? user.displayName[0].toUpperCase()
+                          : 'U',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF1A1C23),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Profile Main Hero Card matching mockup right screen
+              StitchGlassCard(
+                borderRadius: BorderRadius.circular(28),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    // Name & Handle Header Row with Premium Badge
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    user.displayName.isNotEmpty ? user.displayName : 'User',
-                                    style: textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit_outlined, size: 18),
-                                  tooltip: 'Edit Profile',
-                                  onPressed: () => _openEditProfileSheet(scaffoldContext),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer.withValues(alpha: 0.8),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                user.formattedUsername,
-                                style: textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
                             Text(
-                              user.email,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                              user.displayName.isNotEmpty
+                                  ? user.displayName
+                                  : 'User',
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1A1C23),
                               ),
                             ),
+                            const SizedBox(height: 2),
                             Text(
-                              'Member since ${DateFormat.yMMMd().format(user.createdAt)}',
-                              style: textTheme.labelSmall?.copyWith(
-                                color: colorScheme.outline,
+                              user.formattedUsername,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: isDark
+                                    ? Colors.white54
+                                    : const Color(0xFF757885),
                               ),
                             ),
                           ],
                         ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1A1C23),
+                            borderRadius: BorderRadius.circular(9999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.workspace_premium_rounded,
+                                color: Colors.amberAccent,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Premium',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 3 Stat Pills Row (Gönderi, Takipçi, Takip)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatPill(
+                            context,
+                            count: '$txCount',
+                            label: 'Entries',
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildStatPill(
+                            context,
+                            count: '$goalCount',
+                            label: 'Goals',
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildStatPill(
+                            context,
+                            count: '15',
+                            label: 'Streak',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Dark Metallic Banner ("Kredin Tükendi!")
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF252830),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                    ],
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.15),
+                            ),
+                            child: const Icon(
+                              Icons.star_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Pro Features Unlocked',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Unlimited AI budget insights active.',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () => _openSettingsSheet(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF1A1C23),
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(9999),
+                              ),
+                              textStyle: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            child: const Text('Manage'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Settings Group Menu Container matching mockup
+              StitchGlassCard(
+                borderRadius: BorderRadius.circular(28),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.person_outline_rounded,
+                      title: 'Account Info',
+                      onTap: () => _openEditProfileSheet(context),
+                    ),
+                    const Divider(height: 1, indent: 64),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.currency_exchange_rounded,
+                      title: 'Currency & Format',
+                      subtitle: user.currency,
+                      onTap: () => _openSettingsSheet(context),
+                    ),
+                    const Divider(height: 1, indent: 64),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.lock_outline_rounded,
+                      title: 'App Lock & Security',
+                      onTap: () => _openSettingsSheet(context),
+                    ),
+                    const Divider(height: 1, indent: 64),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.settings_outlined,
+                      title: 'Settings & Preferences',
+                      onTap: () => _openSettingsSheet(context),
+                    ),
+                    const Divider(height: 1, indent: 64),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.logout_rounded,
+                      title: 'Log Out',
+                      titleColor: Colors.redAccent,
+                      onTap: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Log Out'),
+                            content:
+                                const Text('Are you sure you want to log out?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton(
+                                style: FilledButton.styleFrom(
+                                    backgroundColor: Colors.redAccent),
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text('Log Out'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true && context.mounted) {
+                          context.go(RouteNames.login);
+                          ref.read(authControllerProvider.notifier).signOut();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatPill(BuildContext context,
+      {required String count, required String label}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : const Color(0xFFF6F7F9),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Text(
+            count,
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF1A1C23),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: isDark ? Colors.white54 : const Color(0xFF757885),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Color? titleColor,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 22,
+                color: titleColor ??
+                    (isDark ? Colors.white : const Color(0xFF1A1C23)),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: titleColor ??
+                        (isDark ? Colors.white : const Color(0xFF1A1C23)),
                   ),
                 ),
+              ),
+              if (subtitle != null) ...[
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: isDark ? Colors.white54 : const Color(0xFF757885),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: isDark ? Colors.white38 : const Color(0xFFA0A3AF),
               ),
             ],
           ),
@@ -171,7 +508,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-/// Settings Bottom Sheet with functional Profile, Currency, Theme Presets, App Lock & Security, and Direct Log Out.
+/// Settings Bottom Sheet
 class _SettingsSheet extends ConsumerWidget {
   const _SettingsSheet();
 
@@ -200,18 +537,28 @@ class _SettingsSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Select Currency', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Select Currency',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: AppSizes.md),
             for (final c in currencies)
               ListTile(
-                leading: Text(c['symbol']!, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                leading: Text(c['symbol']!,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
                 title: Text(c['name']!),
                 subtitle: Text(c['code']!),
-                trailing: currentCurrency == c['code'] ? const Icon(Icons.check_circle, color: Colors.blue) : null,
+                trailing: currentCurrency == c['code']
+                    ? const Icon(Icons.check_circle, color: Colors.blue)
+                    : null,
                 onTap: () async {
                   Navigator.pop(ctx);
                   if (user != null) {
-                    await ref.read(authControllerProvider.notifier).updateProfile(
+                    await ref
+                        .read(authControllerProvider.notifier)
+                        .updateProfile(
                           uid: user.uid,
                           displayName: user.displayName,
                           username: user.username,
@@ -220,7 +567,8 @@ class _SettingsSheet extends ConsumerWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Currency updated to ${c['code']} (${c['symbol']})'),
+                          content: Text(
+                              'Currency updated to ${c['code']} (${c['symbol']})'),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -245,7 +593,6 @@ class _SettingsSheet extends ConsumerWidget {
       ),
       builder: (ctx) => Consumer(
         builder: (context, ref, _) {
-          final currentPreset = ref.watch(themePresetProvider);
           final currentMode = ref.watch(themeModeProvider);
 
           return Padding(
@@ -254,12 +601,19 @@ class _SettingsSheet extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Theme', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text('Theme',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 const SizedBox(height: AppSizes.md),
 
-                // 1. Light / Dark / System Mode Control
-                Text('Mode', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text('Mode',
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelLarge
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -268,7 +622,9 @@ class _SettingsSheet extends ConsumerWidget {
                         label: 'Light',
                         icon: Icons.light_mode_outlined,
                         isSelected: currentMode == ThemeMode.light,
-                        onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light),
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .setThemeMode(ThemeMode.light),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -277,7 +633,9 @@ class _SettingsSheet extends ConsumerWidget {
                         label: 'Dark',
                         icon: Icons.dark_mode_outlined,
                         isSelected: currentMode == ThemeMode.dark,
-                        onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark),
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .setThemeMode(ThemeMode.dark),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -286,36 +644,13 @@ class _SettingsSheet extends ConsumerWidget {
                         label: 'System',
                         icon: Icons.brightness_auto_outlined,
                         isSelected: currentMode == ThemeMode.system,
-                        onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system),
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .setThemeMode(ThemeMode.system),
                       ),
                     ),
                   ],
                 ),
-
-                const Divider(height: 28),
-
-                // 2. Dual-Color Theme Combinations
-                Text('Color Combinations', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-
-                for (final preset in AppThemePreset.values)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Container(
-                      width: 44,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        gradient: preset.primaryGradient,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white24, width: 1),
-                      ),
-                    ),
-                    title: Text(preset.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    trailing: currentPreset == preset ? const Icon(Icons.check_circle, color: Colors.blue) : null,
-                    onTap: () {
-                      ref.read(themePresetProvider.notifier).setPreset(preset);
-                    },
-                  ),
                 const SizedBox(height: AppSizes.sm),
               ],
             ),
@@ -343,34 +678,48 @@ class _SettingsSheet extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('App Lock', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text('App Lock',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: AppSizes.xs),
-                Text('Protect Finnect using your phone PIN, pattern, password, or biometrics', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                    'Protect Finnect using your phone PIN, pattern, password, or biometrics',
+                    style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: AppSizes.md),
                 SwitchListTile(
                   title: const Text('Require Phone Lock Screen'),
-                  subtitle: const Text('Unlock app using phone PIN, pattern, or biometrics'),
+                  subtitle: const Text(
+                      'Unlock app using phone PIN, pattern, or biometrics'),
                   value: isAppLock,
                   onChanged: (val) async {
                     if (val) {
-                      final verified = await AppLockService.instance.authenticateWithDeviceLock(
-                        reason: 'Verify phone lock credentials to enable App Lock',
+                      final verified = await AppLockService.instance
+                          .authenticateWithDeviceLock(
+                        reason:
+                            'Verify phone lock credentials to enable App Lock',
                       );
                       if (verified) {
-                        await ref.read(isAppLockEnabledProvider.notifier).setEnabled(true);
+                        await ref
+                            .read(isAppLockEnabledProvider.notifier)
+                            .setEnabled(true);
                         ref.read(isAppLockedProvider.notifier).lock();
                       } else {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Phone lock verification required to enable App Lock.'),
+                              content: Text(
+                                  'Phone lock verification required to enable App Lock.'),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
                         }
                       }
                     } else {
-                      await ref.read(isAppLockEnabledProvider.notifier).setEnabled(false);
+                      await ref
+                          .read(isAppLockEnabledProvider.notifier)
+                          .setEnabled(false);
                       ref.read(isAppLockedProvider.notifier).unlock();
                     }
                   },
@@ -388,12 +737,12 @@ class _SettingsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final theme = Theme.of(context);
-    final currentPreset = ref.watch(themePresetProvider);
 
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppSizes.radiusLg)),
       ),
       padding: const EdgeInsets.all(AppSizes.lg),
       child: Column(
@@ -405,7 +754,7 @@ class _SettingsSheet extends ConsumerWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white30,
+                color: Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -413,25 +762,10 @@ class _SettingsSheet extends ConsumerWidget {
           const SizedBox(height: AppSizes.md),
           Text(
             'Settings',
-            style: context.textStyles.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: context.textStyles.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppSizes.md),
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: const Text('Edit Profile'),
-            subtitle: const Text('Change display name & username'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.pop(context);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                showAppModalBottomSheet(
-                  context: context,
-                  ref: ref,
-                  builder: (ctx) => const _EditProfileSheet(),
-                );
-              });
-            },
-          ),
           ListTile(
             leading: const Icon(Icons.currency_exchange),
             title: const Text('Currency'),
@@ -441,8 +775,7 @@ class _SettingsSheet extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.dark_mode_outlined),
-            title: const Text('Theme'),
-            subtitle: Text(currentPreset.displayName),
+            title: const Text('Theme Mode'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _openThemePresetPicker(context, ref),
           ),
@@ -453,86 +786,13 @@ class _SettingsSheet extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _openSecuritySheet(context, ref),
           ),
-          const Divider(height: 24),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: const Text(
-              'Log Out',
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-            ),
-            onTap: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Log Out'),
-                  content: const Text('Are you sure you want to log?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel'),
-                    ),
-                    FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Log Out'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirm == true && context.mounted) {
-                // Instantly navigate straight to login page without home page flash!
-                context.go(RouteNames.login);
-                ref.read(authControllerProvider.notifier).signOut();
-              }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-            title: const Text(
-              'Delete Account',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-            ),
-            subtitle: const Text(
-              'Permanently delete your profile & data',
-              style: TextStyle(fontSize: 11, color: Colors.white54),
-            ),
-            onTap: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Delete Account'),
-                  content: const Text(
-                    'Are you sure you want to permanently delete your account? All your transaction history and profile data will be erased.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel'),
-                    ),
-                    FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Delete Account'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirm == true && context.mounted) {
-                context.go(RouteNames.login);
-                await ref.read(authControllerProvider.notifier).deleteAccount();
-              }
-            },
-          ),
-          const SizedBox(height: AppSizes.md),
         ],
       ),
     );
   }
 }
 
-/// Edit Profile Modal Sheet
+/// Edit Profile Sheet
 class _EditProfileSheet extends ConsumerStatefulWidget {
   const _EditProfileSheet();
 
@@ -580,11 +840,12 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 
     setState(() => _isLoading = true);
 
-    final success = await ref.read(authControllerProvider.notifier).updateProfile(
-          uid: user.uid,
-          displayName: newName,
-          username: newUsername,
-        );
+    final success =
+        await ref.read(authControllerProvider.notifier).updateProfile(
+              uid: user.uid,
+              displayName: newName,
+              username: newUsername,
+            );
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -598,19 +859,9 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
           ),
         );
       } else {
-        final authState = ref.read(authControllerProvider);
-        String msg = 'Failed to update profile. Please try again.';
-        if (authState.hasError && authState.error != null) {
-          final err = authState.error;
-          if (err is Exception) {
-            msg = err.toString().replaceAll('Exception: ', '').replaceAll('FirebaseAuthException: ', '');
-          } else {
-            msg = err.toString();
-          }
-        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(msg),
+          const SnackBar(
+            content: Text('Failed to update profile.'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.redAccent,
           ),
@@ -626,7 +877,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusLg)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppSizes.radiusLg)),
       ),
       padding: EdgeInsets.only(
         left: AppSizes.lg,
@@ -643,7 +895,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
             children: [
               Text(
                 'Edit Profile',
-                style: context.textStyles.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: context.textStyles.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -679,9 +932,11 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
                   )
-                : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+                : const Text('Save Changes',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

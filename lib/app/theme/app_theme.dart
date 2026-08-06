@@ -68,12 +68,11 @@ abstract class AppTheme {
       brightness: brightness,
       colorScheme: scheme,
       scaffoldBackgroundColor:
-          isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          isDark ? AppColors.surfaceDark : Colors.transparent,
       textTheme: textTheme,
       fontFamily: AppTypography.fontFamily,
       visualDensity: VisualDensity.standard,
       splashFactory: InkSparkle.splashFactory,
-
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
@@ -87,7 +86,6 @@ abstract class AppTheme {
           color: isDark ? AppColors.iceWhite : Colors.black87,
         ),
       ),
-
       cardTheme: CardThemeData(
         color: isDark
             ? const Color(0xFF141926).withValues(alpha: 0.78)
@@ -104,14 +102,13 @@ abstract class AppTheme {
           ),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark
             ? const Color(0xFF111624).withValues(alpha: 0.85)
             : const Color(0xFFF1F5F9),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.md),
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.md, vertical: AppSizes.md),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide(
@@ -146,7 +143,6 @@ abstract class AppTheme {
           color: isDark ? AppColors.mutedPeriwinkle : scheme.onSurfaceVariant,
         ),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: isDark ? const Color(0xFF222C42) : primary,
@@ -166,7 +162,6 @@ abstract class AppTheme {
           shadowColor: primary.withValues(alpha: 0.35),
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
@@ -181,7 +176,6 @@ abstract class AppTheme {
           ),
         ),
       ),
-
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           textStyle: textTheme.titleMedium?.copyWith(
@@ -190,11 +184,9 @@ abstract class AppTheme {
           ),
         ),
       ),
-
       chipTheme: ChipThemeData(
-        backgroundColor: isDark
-            ? const Color(0xFF181F30)
-            : scheme.surfaceContainerHighest,
+        backgroundColor:
+            isDark ? const Color(0xFF181F30) : scheme.surfaceContainerHighest,
         selectedColor: primary,
         secondaryLabelStyle: TextStyle(color: preset.buttonTextColor),
         labelStyle: textTheme.labelMedium,
@@ -206,16 +198,15 @@ abstract class AppTheme {
               ? AppColors.glassBorder.withValues(alpha: 0.4)
               : BorderSide.none.color,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: AppSizes.sm, vertical: 4),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSizes.sm, vertical: 4),
       ),
-
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primary,
         foregroundColor: preset.buttonTextColor,
         elevation: 6,
         shape: const CircleBorder(),
       ),
-
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: isDark ? AppColors.cardDark : AppColors.cardLight,
         indicatorColor: primary,
@@ -234,7 +225,6 @@ abstract class AppTheme {
           );
         }),
       ),
-
       dividerTheme: DividerThemeData(
         color: isDark
             ? AppColors.glassBorder.withValues(alpha: 0.40)
@@ -242,14 +232,11 @@ abstract class AppTheme {
         thickness: 1,
         space: 1,
       ),
-
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: primary,
-        circularTrackColor: isDark
-            ? const Color(0xFF181F30)
-            : scheme.surfaceContainerHighest,
+        circularTrackColor:
+            isDark ? const Color(0xFF181F30) : scheme.surfaceContainerHighest,
       ),
-
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: isDark ? const Color(0xFF0F1420) : AppColors.cardLight,
         shape: const RoundedRectangleBorder(
@@ -257,7 +244,6 @@ abstract class AppTheme {
         ),
         showDragHandle: true,
       ),
-
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
